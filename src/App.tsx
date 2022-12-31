@@ -47,7 +47,7 @@ function App() {
       let shortedLabel = ''
       _label.forEach(word => {
         if (/^[A-Za-z0-9]*$/.test(word)) {
-          shortedLabel = shortedLabel.concat(word.slice(0, 4) + ' ')
+          shortedLabel = shortedLabel.concat(word.slice(0, 3) + ' ')
         }
       })
       return shortedLabel.trim();
@@ -65,7 +65,7 @@ function App() {
       case 'glasses (6oz)':
         return Math.round(milliliters / 177.441)
       case 'bottles (750ml)':
-        return Math.round(milliliters / 750)
+        return Math.round((milliliters / 750) * 10) / 10
       default:
         return 0
     }
@@ -299,21 +299,21 @@ function App() {
               ${totalMoney / 100}
             </Typography>
           </Grid>
-          <Grid xs={12} sm={12} md={12} lg={6}>
+          <Grid xs={12}>
             <Card>
               <CardContent>
                 <Bar options={barRemainingOptions} data={totalRemainingData}/>
               </CardContent>
             </Card>
           </Grid>
-          <Grid xs={12} sm={12} md={12} lg={6}>
+          <Grid xs={12}>
             <Card>
               <CardContent>
                 <Bar options={barPouredOptions} data={totalPouredData}/>
               </CardContent>
             </Card>
           </Grid>
-          <Grid xs={12} sm={12} md={12} lg={6}>
+          <Grid xs={12}>
             <Card>
               <CardContent>
                 <Pie options={piePouredOptions} data={totalPouredData}/>
