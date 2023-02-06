@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import './App.css';
 import {
   AppBar, Box,
@@ -11,6 +11,27 @@ import {
 import Grid from '@mui/material/Unstable_Grid2';
 import {Chart as ChartJS, BarElement, CategoryScale, Legend, LinearScale, Title, Tooltip, ArcElement} from "chart.js";
 import {Bar, Pie} from "react-chartjs-2";
+import {initializeApp} from "firebase/app";
+import {getFirestore} from "firebase/firestore";
+import {collection, query, where, getDocs, Timestamp, orderBy} from "firebase/firestore";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyCdarpfE9BN07iyiDjcufHd3MKyETzDUnw",
+  authDomain: "vinobarrel-58576.firebaseapp.com",
+  projectId: "vinobarrel-58576",
+  storageBucket: "vinobarrel-58576.appspot.com",
+  messagingSenderId: "374710471223",
+  appId: "1:374710471223:web:d34cb30be1d63c35264db2",
+  measurementId: "G-LJTGLW7H8W"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
 ChartJS.register(
   ArcElement,
@@ -31,14 +52,26 @@ type Total = {
   glasses: number;
 }
 
+type Transaction = {
+  glass_id: string;
+  kegId: string;
+  millilitersPoured: number;
+  millilitersRemaining: number;
+  name: string;
+  pourType: string;
+  price: number;
+  timestamp: Timestamp
+}
+
 function App() {
+  const [transactions, setTransactions] = useState<Transaction[] | []>([])
   const [totals, setTotals] = useState<Total[] | []>([])
   const [remaining, setRemaining] = useState<Total[] | []>([])
   const [totalPoured, setTotalPoured] = useState(0)
   const [totalData, setTotalData] = useState<number[]>([])
   const [remainingData, setRemainingData] = useState<number[]>([])
   const [totalMoney, setTotalMoney] = useState(0)
-  const [timeframeHour, setTimeframeHour] = useState(1)
+  const [timeframeHour, setTimeframeHour] = useState(8)
   const [unit, setUnit] = useState<typeof unitsOfMeasurement[number]>('glasses (6oz)')
 
   const shortenLabel = (label: string): string => {
@@ -118,7 +151,6 @@ function App() {
     labels: totalPouredLabels,
     datasets: [
       {
-        label: '',
         data: totalData,
         backgroundColor: [
           'rgba(255, 99, 132, 0.2)',
@@ -145,7 +177,6 @@ function App() {
     labels: totalRemainingLabels,
     datasets: [
       {
-        label: '',
         data: remainingData,
         backgroundColor: [
           'rgba(255, 99, 132, 0.2)',
@@ -167,6 +198,22 @@ function App() {
     ],
   };
 
+  const getTransactions = useCallback(async () => {
+    const timestamp = Timestamp.now().toMillis() - (timeframeHour * 3600000)
+    const q = query(collection(db, "transactions"), where("timestamp", ">=", Timestamp.fromMillis(timestamp)), orderBy("timestamp", "desc"));
+    const querySnapshot = await getDocs(q);
+    const _transactions: Transaction[] = []
+    querySnapshot.forEach((doc) => {
+      console.log(doc.data())
+      _transactions.push(doc.data() as Transaction)
+    });
+    setTransactions(_transactions)
+  }, [timeframeHour])
+
+  useEffect(() => {
+    getTransactions().then()
+  }, [getTransactions])
+
   useEffect(() => {
     fetch(`http://${process.env.REACT_APP_SERVER_IP_ADDRESS}:${process.env.REACT_APP_SERVER_API_PORT}/total?timeframeHour=${timeframeHour}`, {
       method: 'GET'
@@ -176,49 +223,47 @@ function App() {
         setTotals(data)
       })
   }, [timeframeHour])
-
-  useEffect(() => {
-    //TODO: change this fetch look at the tablet server to get accurate data
-    fetch(`http://${process.env.REACT_APP_SERVER_IP_ADDRESS}:${process.env.REACT_APP_SERVER_API_PORT}/total?timeframeHour=${180}`, {
-      method: 'GET'
-    })
-      .then(async response => await response.json())
-      .then((data: Total[]) => {
-        //TODO: remove all this logic to figure out how much is left
-        let _totalData: Total[] = []
-        data?.forEach(total => {
-          let remaining = 7500 - total.pouredML
-          _totalData.push({...total, pouredML: remaining})
-        })
-        setRemaining(_totalData)
-      })
-  }, [])
-
-  useEffect(() => {
-    let _totalPoured = 0
-    let _totalMoney = 0
-    let _totalData: number[] = []
-    let poured = 0;
-    totals?.forEach(total => {
-      poured = convertMillilitersToUnit(total.pouredML, unit)
-      _totalPoured += poured
-      _totalMoney += total.priceCents
-      _totalData.push(poured)
-    })
-    setTotalPoured(_totalPoured)
-    setTotalMoney(_totalMoney)
-    setTotalData(_totalData)
-  }, [totals, unit])
-
-  useEffect(() => {
-    let _totalData: number[] = []
-    let poured = 0;
-    remaining?.forEach(total => {
-      poured = convertMillilitersToUnit(total.pouredML, unit)
-      _totalData.push(poured)
-    })
-    setRemainingData(_totalData)
-  }, [remaining, unit])
+  //
+  // useEffect(() => {
+  //   //TODO: change this fetch look at the tablet server to get accurate data
+  //   fetch(`http://${process.env.REACT_APP_SERVER_IP_ADDRESS}:${process.env.REACT_APP_SERVER_API_PORT}/total?timeframeHour=${180}`, {
+  //     method: 'GET'
+  //   })
+  //     .then(async response => await response.json())
+  //     .then((data: Total[]) => {
+  //       let _totalData: Total[] = []
+  //       data?.forEach(total => {
+  //         _totalData.push({...total})
+  //       })
+  //       setRemaining(_totalData)
+  //     })
+  // }, [])
+  //
+  // useEffect(() => {
+  //   let _totalPoured = 0
+  //   let _totalMoney = 0
+  //   let _totalData: number[] = []
+  //   let poured = 0;
+  //   totals?.forEach(total => {
+  //     poured = convertMillilitersToUnit(total.pouredML, unit)
+  //     _totalPoured += poured
+  //     _totalMoney += total.priceCents
+  //     _totalData.push(poured)
+  //   })
+  //   setTotalPoured(_totalPoured)
+  //   setTotalMoney(_totalMoney)
+  //   setTotalData(_totalData)
+  // }, [totals, unit])
+  //
+  // useEffect(() => {
+  //   let _totalData: number[] = []
+  //   let poured = 0;
+  //   remaining?.forEach(total => {
+  //     poured = convertMillilitersToUnit(total.pouredML, unit)
+  //     _totalData.push(poured)
+  //   })
+  //   setRemainingData(_totalData)
+  // }, [remaining, unit])
 
   const handleUnitChange = (event: SelectChangeEvent) => {
     const unit = event.target.value as typeof unitsOfMeasurement[number]
@@ -299,13 +344,13 @@ function App() {
               ${totalMoney / 100}
             </Typography>
           </Grid>
-          <Grid xs={12}>
-            <Card>
-              <CardContent>
-                <Bar options={barRemainingOptions} data={totalRemainingData}/>
-              </CardContent>
-            </Card>
-          </Grid>
+          {/*<Grid xs={12}>*/}
+          {/*  <Card>*/}
+          {/*    <CardContent>*/}
+          {/*      <Bar options={barRemainingOptions} data={totalRemainingData}/>*/}
+          {/*    </CardContent>*/}
+          {/*  </Card>*/}
+          {/*</Grid>*/}
           <Grid xs={12}>
             <Card>
               <CardContent>
