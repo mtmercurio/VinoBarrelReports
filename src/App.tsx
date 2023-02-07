@@ -14,9 +14,8 @@ import {Bar, Pie} from "react-chartjs-2";
 import {initializeApp} from "firebase/app";
 import {getFirestore} from "firebase/firestore";
 import {collection, query, where, getDocs, Timestamp, orderBy} from "firebase/firestore";
-const groupArray = require('group-array');
-// TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
+const groupArray = require('group-array');
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
@@ -69,7 +68,7 @@ function App() {
   const [totalPoured, setTotalPoured] = useState(0)
   const [totalData, setTotalData] = useState<number[]>([])
   const [totalMoney, setTotalMoney] = useState(0)
-  const [timeframeHour, setTimeframeHour] = useState(8)
+  const [timeframeHour, setTimeframeHour] = useState(12)
   const [unit, setUnit] = useState<typeof unitsOfMeasurement[number]>('glasses (6oz)')
 
   const shortenLabel = (label: string): string => {
