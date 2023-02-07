@@ -14,6 +14,7 @@ import {Bar, Pie} from "react-chartjs-2";
 import {initializeApp} from "firebase/app";
 import {getFirestore} from "firebase/firestore";
 import {collection, query, where, getDocs, Timestamp, orderBy} from "firebase/firestore";
+const groupArray = require('group-array');
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -64,12 +65,9 @@ type Transaction = {
 }
 
 function App() {
-  const [transactions, setTransactions] = useState<Transaction[] | []>([])
   const [totals, setTotals] = useState<Total[] | []>([])
-  const [remaining, setRemaining] = useState<Total[] | []>([])
   const [totalPoured, setTotalPoured] = useState(0)
   const [totalData, setTotalData] = useState<number[]>([])
-  const [remainingData, setRemainingData] = useState<number[]>([])
   const [totalMoney, setTotalMoney] = useState(0)
   const [timeframeHour, setTimeframeHour] = useState(8)
   const [unit, setUnit] = useState<typeof unitsOfMeasurement[number]>('glasses (6oz)')
@@ -103,20 +101,6 @@ function App() {
         return 0
     }
   }
-
-  const barRemainingOptions = {
-    responsive: true,
-    plugins: {
-      legend: {
-        display: false,
-        position: 'top' as const,
-      },
-      title: {
-        display: true,
-        text: `Total Remaining (${unit})`,
-      },
-    },
-  };
 
   const barPouredOptions = {
     responsive: true,
@@ -172,42 +156,34 @@ function App() {
     ],
   };
 
-  const totalRemainingLabels = remaining?.map(keg => shortenLabel(keg.name));
-  const totalRemainingData = {
-    labels: totalRemainingLabels,
-    datasets: [
-      {
-        data: remainingData,
-        backgroundColor: [
-          'rgba(255, 99, 132, 0.2)',
-          'rgba(54, 162, 235, 0.2)',
-          'rgba(255, 206, 86, 0.2)',
-          'rgba(75, 192, 192, 0.2)',
-          'rgba(153, 102, 255, 0.2)',
-          'rgba(255, 159, 64, 0.2)',
-        ],
-        borderColor: [
-          'rgba(255, 99, 132, 1)',
-          'rgba(54, 162, 235, 1)',
-          'rgba(255, 206, 86, 1)',
-          'rgba(75, 192, 192, 1)',
-          'rgba(153, 102, 255, 1)',
-          'rgba(255, 159, 64, 1)',
-        ],
-      },
-    ],
-  };
-
   const getTransactions = useCallback(async () => {
     const timestamp = Timestamp.now().toMillis() - (timeframeHour * 3600000)
     const q = query(collection(db, "transactions"), where("timestamp", ">=", Timestamp.fromMillis(timestamp)), orderBy("timestamp", "desc"));
     const querySnapshot = await getDocs(q);
-    const _transactions: Transaction[] = []
+    const transactions: Transaction[] = []
     querySnapshot.forEach((doc) => {
       console.log(doc.data())
-      _transactions.push(doc.data() as Transaction)
+      transactions.push(doc.data() as Transaction)
     });
-    setTransactions(_transactions)
+    if (transactions.length > 0) {
+      const groupedTransactions = groupArray(transactions, 'name')
+      const _totals = Object.keys(groupedTransactions).map((name: string) => {
+        return {
+          name: name,
+          pouredML: groupedTransactions[name].reduce(
+            (accumulator: any, currentValue: any) => accumulator + currentValue.millilitersPoured,
+            0
+          ),
+          priceCents: groupedTransactions[name].reduce(
+            (accumulator: any, currentValue: any) => accumulator + currentValue.price,
+            0
+          ),
+          glasses: groupedTransactions[name].length,
+        }
+      })
+      console.log(_totals)
+      setTotals(_totals)
+    }
   }, [timeframeHour])
 
   useEffect(() => {
@@ -215,55 +191,20 @@ function App() {
   }, [getTransactions])
 
   useEffect(() => {
-    fetch(`http://${process.env.REACT_APP_SERVER_IP_ADDRESS}:${process.env.REACT_APP_SERVER_API_PORT}/total?timeframeHour=${timeframeHour}`, {
-      method: 'GET'
+    let _totalPoured = 0
+    let _totalMoney = 0
+    let _totalData: number[] = []
+    let poured = 0;
+    totals?.forEach(total => {
+      poured = convertMillilitersToUnit(total.pouredML, unit)
+      _totalPoured += poured
+      _totalMoney += total.priceCents
+      _totalData.push(poured)
     })
-      .then(async response => await response.json())
-      .then((data: Total[]) => {
-        setTotals(data)
-      })
-  }, [timeframeHour])
-  //
-  // useEffect(() => {
-  //   //TODO: change this fetch look at the tablet server to get accurate data
-  //   fetch(`http://${process.env.REACT_APP_SERVER_IP_ADDRESS}:${process.env.REACT_APP_SERVER_API_PORT}/total?timeframeHour=${180}`, {
-  //     method: 'GET'
-  //   })
-  //     .then(async response => await response.json())
-  //     .then((data: Total[]) => {
-  //       let _totalData: Total[] = []
-  //       data?.forEach(total => {
-  //         _totalData.push({...total})
-  //       })
-  //       setRemaining(_totalData)
-  //     })
-  // }, [])
-  //
-  // useEffect(() => {
-  //   let _totalPoured = 0
-  //   let _totalMoney = 0
-  //   let _totalData: number[] = []
-  //   let poured = 0;
-  //   totals?.forEach(total => {
-  //     poured = convertMillilitersToUnit(total.pouredML, unit)
-  //     _totalPoured += poured
-  //     _totalMoney += total.priceCents
-  //     _totalData.push(poured)
-  //   })
-  //   setTotalPoured(_totalPoured)
-  //   setTotalMoney(_totalMoney)
-  //   setTotalData(_totalData)
-  // }, [totals, unit])
-  //
-  // useEffect(() => {
-  //   let _totalData: number[] = []
-  //   let poured = 0;
-  //   remaining?.forEach(total => {
-  //     poured = convertMillilitersToUnit(total.pouredML, unit)
-  //     _totalData.push(poured)
-  //   })
-  //   setRemainingData(_totalData)
-  // }, [remaining, unit])
+    setTotalPoured(_totalPoured)
+    setTotalMoney(_totalMoney)
+    setTotalData(_totalData)
+  }, [totals, unit])
 
   const handleUnitChange = (event: SelectChangeEvent) => {
     const unit = event.target.value as typeof unitsOfMeasurement[number]
@@ -344,13 +285,6 @@ function App() {
               ${totalMoney / 100}
             </Typography>
           </Grid>
-          {/*<Grid xs={12}>*/}
-          {/*  <Card>*/}
-          {/*    <CardContent>*/}
-          {/*      <Bar options={barRemainingOptions} data={totalRemainingData}/>*/}
-          {/*    </CardContent>*/}
-          {/*  </Card>*/}
-          {/*</Grid>*/}
           <Grid xs={12}>
             <Card>
               <CardContent>
