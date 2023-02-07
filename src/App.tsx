@@ -161,7 +161,6 @@ function App() {
     const querySnapshot = await getDocs(q);
     const transactions: Transaction[] = []
     querySnapshot.forEach((doc) => {
-      console.log(doc.data())
       transactions.push(doc.data() as Transaction)
     });
     let _totals: Total[] | [] = []
@@ -181,7 +180,6 @@ function App() {
           glasses: groupedTransactions[name].length,
         }
       })
-      console.log(_totals)
     }
     setTotals(_totals)
   }, [timeframeHour])
