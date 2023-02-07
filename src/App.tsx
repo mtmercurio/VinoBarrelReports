@@ -164,9 +164,10 @@ function App() {
       console.log(doc.data())
       transactions.push(doc.data() as Transaction)
     });
+    let _totals: Total[] | [] = []
     if (transactions.length > 0) {
       const groupedTransactions = groupArray(transactions, 'name')
-      const _totals = Object.keys(groupedTransactions).map((name: string) => {
+      _totals = Object.keys(groupedTransactions).map((name: string) => {
         return {
           name: name,
           pouredML: groupedTransactions[name].reduce(
@@ -181,8 +182,8 @@ function App() {
         }
       })
       console.log(_totals)
-      setTotals(_totals)
     }
+    setTotals(_totals)
   }, [timeframeHour])
 
   useEffect(() => {
