@@ -91,7 +91,7 @@ function VinoBarrelAppBar() {
             >
               {pages.map((page) => (
                 <MenuItem key={page} onClick={() => handleCloseNavMenu(page)}>
-                  <Typography textAlign="center">{page}</Typography>
+                  <Typography textAlign="center">{page.toUpperCase()}</Typography>
                 </MenuItem>
               ))}
             </Menu>
