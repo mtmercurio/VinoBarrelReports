@@ -78,7 +78,6 @@ export default function BarrelEdit(props: { db: Firestore }) {
   const deleteKeg = () => {
     setBarrel(barrel => {
       barrel.kegs.splice(kegIndex, 1)
-      console.log(barrel)
       return {...barrel}
     })
     setKegIndex(0)
@@ -221,6 +220,7 @@ export default function BarrelEdit(props: { db: Firestore }) {
       handleOnClick: () => {
         setBarrel(barrel => {
           barrel.kegs.push(defaultKeg)
+          setKegIndex(barrel.kegs.length - 1)
           return {...barrel}
         })
         saveBarrel().then()
