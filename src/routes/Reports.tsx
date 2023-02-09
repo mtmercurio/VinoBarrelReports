@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   Box,
   Card,
@@ -136,11 +136,10 @@ export default function Reports(props: { db: Firestore }) {
     ],
   };
 
-  const getTransactions = useCallback(async () => {
+  useEffect(() => {
     const timestamp = Timestamp.now().toMillis() - (timeframeHour * 3600000)
     const q = query(collection(props.db, "transactions"), where("timestamp", ">=", Timestamp.fromMillis(timestamp)), orderBy("timestamp", "desc"));
-    // const querySnapshot = await getDocs(q);
-    return onSnapshot(q, (querySnapshot) => {
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const transactions: Transaction[] = []
       querySnapshot.forEach((doc) => {
         transactions.push(doc.data() as Transaction)
@@ -165,14 +164,10 @@ export default function Reports(props: { db: Firestore }) {
       }
       setTotals(_totals)
     });
-  }, [props.db, timeframeHour])
-
-  useEffect(() => {
-    const unsubscribe = getTransactions
     return () => {
-      unsubscribe().then()
+      unsubscribe()
     }
-  }, [getTransactions])
+  }, [props.db, timeframeHour])
 
   useEffect(() => {
     let _totalPoured = 0
