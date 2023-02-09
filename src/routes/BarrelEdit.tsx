@@ -1,6 +1,6 @@
 import {
   CircularProgress,
-  Container, Fab, InputAdornment,
+  Container, Dialog, DialogActions, DialogTitle, Fab, InputAdornment,
   MenuItem, SxProps,
   Tab, Tabs, Zoom
 } from "@mui/material";
@@ -46,6 +46,7 @@ export default function BarrelEdit(props: { db: Firestore }) {
   const [isLoading, setIsLoading] = useState(false);
   const [kegIndex, setKegIndex] = useState(0);
   const [hasChanged, setHasChanged] = useState(false)
+  const [showDeleteKegConfirm, setShowDeleteKegConfirm] = useState(false);
 
   const getBarrel = useCallback(async (barrelId: string) => {
     const docRef = doc(props.db, "barrels", barrelId);
@@ -75,12 +76,21 @@ export default function BarrelEdit(props: { db: Firestore }) {
     }
   }
 
-  const deleteKeg = () => {
+  const handleShowKegDeleteConfirm = () => {
+    setShowDeleteKegConfirm(true);
+  }
+
+  const handleCloseKegDeleteConfirm = () => {
+    setShowDeleteKegConfirm(false);
+  }
+
+  const handleDeleteKegClick = () => {
     setBarrel(barrel => {
       barrel.kegs.splice(kegIndex, 1)
       return {...barrel}
     })
     setKegIndex(0)
+    setShowDeleteKegConfirm(false)
     saveBarrel().then()
   }
 
@@ -193,12 +203,12 @@ export default function BarrelEdit(props: { db: Firestore }) {
 
   const fabStyle = {
     position: 'fixed',
-    bottom: 16,
-    right: 16,
+    bottom: 20,
+    right: 20,
     [theme.breakpoints.up('sm')]: {
-      position: 'relative',
-      bottom: 125,
-      left: 750
+      position: 'static',
+      bottom: 0,
+      right: 0,
     },
   };
 
@@ -248,9 +258,24 @@ export default function BarrelEdit(props: { db: Firestore }) {
     >
       {!isLoading &&
           <>
-              <TextField id={`barrelName`} name={`barrelName`} label={'Barrel Name'}
+              <TextField id={`barrelName`} name={`barrelName`} label={'Barrel Name'} sx={{mr: 5}}
                          value={barrel?.name} onChange={handleBarrelNameChange} placeholder={'Barrel Name'}
                          inputProps={{maxLength: 45}}/>
+            {fabs.map((fab) => (
+              <Zoom
+                key={fab.color}
+                in={fab.shouldShow}
+                timeout={transitionDuration}
+                style={{
+                  transitionDelay: `${fab.shouldShow ? transitionDuration.exit : 0}ms`,
+                }}
+                unmountOnExit
+              >
+                <Fab sx={fab.sx} variant="extended" aria-label={fab.label} color={fab.color} onClick={fab.handleOnClick}>
+                  {fab.icon}
+                </Fab>
+              </Zoom>
+            ))}
               <Box sx={{borderBottom: 1, borderColor: 'divider', mb: 3}}>
                   <Tabs value={kegIndex} variant="scrollable" scrollButtons="auto" onChange={handleTabChange}
                         aria-label="keg tabs">
@@ -362,7 +387,7 @@ export default function BarrelEdit(props: { db: Firestore }) {
                                  placeholder={'177'} inputProps={{maxLength: 6}} fullWidth/>
                   </Grid>
                   <Grid xs={12}>
-                      <Button onClick={deleteKeg} color="error">
+                      <Button variant={'outlined'} onClick={handleShowKegDeleteConfirm} color="error">
                           Delete Keg
                       </Button>
                   </Grid>
@@ -379,21 +404,20 @@ export default function BarrelEdit(props: { db: Firestore }) {
               <CircularProgress/>
           </Box>
       }
-      {fabs.map((fab) => (
-        <Zoom
-          key={fab.color}
-          in={fab.shouldShow}
-          timeout={transitionDuration}
-          style={{
-            transitionDelay: `${fab.shouldShow ? transitionDuration.exit : 0}ms`,
-          }}
-          unmountOnExit
-        >
-          <Fab sx={fab.sx} variant="extended" aria-label={fab.label} color={fab.color} onClick={fab.handleOnClick}>
-            {fab.icon}
-          </Fab>
-        </Zoom>
-      ))}
+      <Dialog
+        open={showDeleteKegConfirm}
+        onClose={handleCloseKegDeleteConfirm}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">
+          Are you sure you want to delete keg {barrel.kegs[kegIndex].name}?
+        </DialogTitle>
+        <DialogActions>
+          <Button onClick={handleCloseKegDeleteConfirm}>Cancel</Button>
+          <Button onClick={handleDeleteKegClick}>Delete Keg</Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   )
 }
