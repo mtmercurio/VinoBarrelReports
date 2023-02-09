@@ -1,7 +1,7 @@
 import {
   CircularProgress,
   Container, Dialog, DialogActions, DialogTitle, Fab, InputAdornment,
-  MenuItem, SxProps,
+  MenuItem, Stack, SxProps,
   Tab, Tabs, Zoom
 } from "@mui/material";
 import Grid from '@mui/material/Unstable_Grid2'
@@ -192,6 +192,15 @@ export default function BarrelEdit(props: { db: Firestore }) {
     }
   }
 
+  const handleAddKegClick = () => {
+    setBarrel(barrel => {
+      barrel.kegs.push(defaultKeg)
+      setKegIndex(barrel.kegs.length - 1)
+      return {...barrel}
+    })
+    saveBarrel().then()
+  }
+
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setKegIndex(newValue);
   };
@@ -201,14 +210,18 @@ export default function BarrelEdit(props: { db: Firestore }) {
     exit: theme.transitions.duration.leavingScreen,
   };
 
+  const buttonStyle = {
+    [theme.breakpoints.down('sm')]: {
+      display: 'none'
+    },
+  };
+
   const fabStyle = {
     position: 'fixed',
     bottom: 20,
     right: 20,
     [theme.breakpoints.up('sm')]: {
-      position: 'static',
-      bottom: 0,
-      right: 0,
+      display: 'none'
     },
   };
 
@@ -228,12 +241,7 @@ export default function BarrelEdit(props: { db: Firestore }) {
       label: 'Keg',
       shouldShow: !hasChanged,
       handleOnClick: () => {
-        setBarrel(barrel => {
-          barrel.kegs.push(defaultKeg)
-          setKegIndex(barrel.kegs.length - 1)
-          return {...barrel}
-        })
-        saveBarrel().then()
+        handleAddKegClick()
       }
     },
     {
@@ -243,9 +251,7 @@ export default function BarrelEdit(props: { db: Firestore }) {
       label: 'Save',
       shouldShow: hasChanged,
       handleOnClick: () => {
-        saveBarrel().then(() =>
-          setHasChanged(false)
-        )
+        saveBarrel().then()
       }
     },
   ];
@@ -258,29 +264,40 @@ export default function BarrelEdit(props: { db: Firestore }) {
     >
       {!isLoading &&
           <>
-              <TextField id={`barrelName`} name={`barrelName`} label={'Barrel Name'} sx={{mr: 5}}
-                         value={barrel?.name} onChange={handleBarrelNameChange} placeholder={'Barrel Name'}
-                         inputProps={{maxLength: 45}}/>
-            {fabs.map((fab) => (
-              <Zoom
-                key={fab.color}
-                in={fab.shouldShow}
-                timeout={transitionDuration}
-                style={{
-                  transitionDelay: `${fab.shouldShow ? transitionDuration.exit : 0}ms`,
-                }}
-                unmountOnExit
-              >
-                <Fab sx={fab.sx} variant="extended" aria-label={fab.label} color={fab.color} onClick={fab.handleOnClick}>
-                  {fab.icon}
-                </Fab>
-              </Zoom>
-            ))}
+              <Stack spacing={2} direction="row" sx={{mb: 3}}>
+                  <TextField id={`barrelName`} name={`barrelName`} label={'Barrel Name'} sx={{mr: 5}}
+                             value={barrel?.name} onChange={handleBarrelNameChange} placeholder={'Barrel Name'}
+                             inputProps={{maxLength: 45}}/>
+                {fabs.map((fab) => (
+                  <Zoom
+                    key={fab.color}
+                    in={fab.shouldShow}
+                    timeout={transitionDuration}
+                    style={{
+                      transitionDelay: `${fab.shouldShow ? transitionDuration.exit : 0}ms`,
+                    }}
+                    unmountOnExit
+                  >
+                    <Fab sx={fab.sx} variant="extended" aria-label={fab.label} color={fab.color}
+                         onClick={fab.handleOnClick}>
+                      {fab.icon}
+                    </Fab>
+                  </Zoom>
+                ))}
+                  <Button variant={'outlined'} color={'primary'} onClick={handleAddKegClick}
+                          sx={buttonStyle as SxProps}>
+                      Add Keg
+                  </Button>
+                  <Button variant={'outlined'} color={'success'} disabled={!hasChanged} onClick={saveBarrel}
+                          sx={buttonStyle as SxProps}>
+                      Save
+                  </Button>
+              </Stack>
               <Box sx={{borderBottom: 1, borderColor: 'divider', mb: 3}}>
                   <Tabs value={kegIndex} variant="scrollable" scrollButtons="auto" onChange={handleTabChange}
                         aria-label="keg tabs">
                     {barrel.kegs.map((keg, index) =>
-                      <Tab label={keg.name} key={index}/>
+                      <Tab key={index} label={keg.name}/>
                     )}
                   </Tabs>
               </Box>
@@ -387,8 +404,8 @@ export default function BarrelEdit(props: { db: Firestore }) {
                                  placeholder={'177'} inputProps={{maxLength: 6}} fullWidth/>
                   </Grid>
                   <Grid xs={12}>
-                      <Button variant={'outlined'} onClick={handleShowKegDeleteConfirm} color="error">
-                          Delete Keg
+                      <Button variant={'outlined'} onClick={handleShowKegDeleteConfirm} color="error" size="large">
+                          Delete
                       </Button>
                   </Grid>
               </Grid>
@@ -415,7 +432,7 @@ export default function BarrelEdit(props: { db: Firestore }) {
         </DialogTitle>
         <DialogActions>
           <Button onClick={handleCloseKegDeleteConfirm}>Cancel</Button>
-          <Button onClick={handleDeleteKegClick}>Delete Keg</Button>
+          <Button onClick={handleDeleteKegClick} color={'error'}>Delete Keg</Button>
         </DialogActions>
       </Dialog>
     </Container>
