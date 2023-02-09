@@ -99,7 +99,7 @@ function VinoBarrelAppBar() {
           <Box sx={{flexGrow: 1, display: {xs: 'none', md: 'flex'}}}>
             {pages.map((page) => (
               <NavLink
-                style={({ isActive }) => ({
+                style={({isActive}) => ({
                   textDecoration: "none",
                   background: isActive ? "lightblue" : "none"
                 })}
@@ -107,7 +107,7 @@ function VinoBarrelAppBar() {
                 to={page}
               >
                 <Button variant="text"
-                  sx={{color: 'black', display: 'block'}}
+                        sx={{color: 'black', display: 'block'}}
                 >
                   {page}
                 </Button>

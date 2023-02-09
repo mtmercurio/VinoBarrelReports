@@ -11,7 +11,7 @@ import {useParams} from "react-router-dom";
 import TextField from "@mui/material/TextField";
 import Box from "@mui/material/Box";
 import {Barrel, Keg} from "./BarrelsOverview";
-import {doc, getDoc, setDoc} from "firebase/firestore";
+import {doc, getDoc, setDoc, addDoc, collection} from "firebase/firestore";
 import {Firestore} from "@firebase/firestore";
 import {green} from "@mui/material/colors";
 import {useTheme} from '@mui/material/styles';
@@ -72,8 +72,10 @@ export default function BarrelEdit(props: { db: Firestore }) {
   const saveBarrel = async () => {
     if (barrelId) {
       await setDoc(doc(props.db, "barrels", barrelId), barrel);
-      setHasChanged(false)
+    } else {
+      await addDoc(collection(props.db, "barrels"), barrel);
     }
+    setHasChanged(false)
   }
 
   const handleShowKegDeleteConfirm = () => {

@@ -17,7 +17,7 @@ import {useNavigate} from "react-router-dom";
 import Box from "@mui/material/Box";
 import AddIcon from '@mui/icons-material/Add';
 import {Firestore} from "@firebase/firestore";
-import {collection, getDocs, query} from "firebase/firestore";
+import {collection, doc, getDocs, query, deleteDoc} from "firebase/firestore";
 
 export type Keg = {
   id: string;
@@ -68,21 +68,19 @@ export default function BarrelsOverview(props: { db: Firestore }) {
     setShowDeleteBarrelConfirm(false);
   }
 
+  const deleteBarrel = async () => {
+    await deleteDoc(doc(props.db, "barrels", deleteBarrelId));
+  }
+
   const handleDeleteBarrelClick = () => {
-    // fetch(`http://${process.env.REACT_APP_SERVER_IP_ADDRESS}:${process.env.REACT_APP_SERVER_API_PORT}/barrels/${deleteBarrelId}`, {
-    //     method: 'DELETE'
-    // })
-    //     .then(response => {
-    //         return response.json()
-    //     })
-    //     .then(() => {
-    //         getBarrels().then();
-    //         setShowDeleteBarrelConfirm(false);
-    //     })
+    deleteBarrel().then(() => {
+      setShowDeleteBarrelConfirm(false)
+      getBarrels().then()
+    })
   }
 
   const handleAddBarrelClick = () => {
-    // navigate(`/barrels/edit/`);
+    navigate(`/new`);
   }
 
   const millilitersToOunces = (milliliters: number): number => {
@@ -103,8 +101,9 @@ export default function BarrelsOverview(props: { db: Firestore }) {
                     subheader={barrel?.temperature ? `${barrel.temperature.toFixed(1)} \u00B0F` : ``}
                   />
 
-                  {barrel.kegs.map((keg) =>
-                    <ListItem sx={{color: keg.milliliters < keg.fullMilliliters ? 'red' : 'inherit'}}
+                  {barrel.kegs.map((keg, index) =>
+                    <ListItem key={keg.id + index}
+                              sx={{color: keg.milliliters < keg.fullMilliliters ? 'red' : 'inherit'}}
                               secondaryAction={
                                 <Typography>
                                   {millilitersToOunces(keg.milliliters).toFixed(2)} oz
@@ -148,7 +147,7 @@ export default function BarrelsOverview(props: { db: Firestore }) {
         </DialogTitle>
         <DialogActions>
           <Button onClick={handleCloseBarrelDeleteConfirm}>Cancel</Button>
-          <Button onClick={handleDeleteBarrelClick}>Delete Barrel</Button>
+          <Button onClick={handleDeleteBarrelClick} color={'error'}>Delete Barrel</Button>
         </DialogActions>
       </Dialog>
     </Container>

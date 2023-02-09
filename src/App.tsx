@@ -31,6 +31,7 @@ function App() {
         <Route path="reports" element={<Reports db={db}/>}/>
         <Route path="barrels" element={<BarrelsOverview db={db}/>}/>
         <Route path="edit/:barrelId" element={<BarrelEdit db={db}/>}/>
+        <Route path="new" element={<BarrelEdit db={db}/>}/>
 
         <Route path="*" element={
           <main style={{padding: "1rem"}}>
