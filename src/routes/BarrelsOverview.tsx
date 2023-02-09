@@ -42,7 +42,7 @@ export type Barrel = {
 export default function BarrelsOverview(props: { db: Firestore }) {
   const navigate = useNavigate();
   const [barrels, setBarrels] = useState<Barrel[]>([]);
-  const [deleteBarrelId, setDeleteBarrelId] = useState('');
+  const [barrelToDelete, setBarrelToDelete] = useState<Barrel>();
   const [showDeleteBarrelConfirm, setShowDeleteBarrelConfirm] = useState(false);
 
   const getBarrels = useCallback(async () => {
@@ -59,8 +59,8 @@ export default function BarrelsOverview(props: { db: Firestore }) {
     getBarrels().then()
   }, [getBarrels])
 
-  const handleShowBarrelDeleteConfirm = (id: string) => {
-    setDeleteBarrelId(id);
+  const handleShowBarrelDeleteConfirm = (barrel: Barrel) => {
+    setBarrelToDelete(barrel);
     setShowDeleteBarrelConfirm(true);
   }
 
@@ -69,7 +69,9 @@ export default function BarrelsOverview(props: { db: Firestore }) {
   }
 
   const deleteBarrel = async () => {
-    await deleteDoc(doc(props.db, "barrels", deleteBarrelId));
+    if (barrelToDelete) {
+      await deleteDoc(doc(props.db, "barrels", barrelToDelete.id));
+    }
   }
 
   const handleDeleteBarrelClick = () => {
@@ -117,7 +119,7 @@ export default function BarrelsOverview(props: { db: Firestore }) {
               </CardActionArea>
               <CardActions>
                 <Button size="large" color="error"
-                        onClick={() => handleShowBarrelDeleteConfirm(barrel.id)}>Delete</Button>
+                        onClick={() => handleShowBarrelDeleteConfirm(barrel)}>Delete</Button>
               </CardActions>
             </Card>
           </Grid>
@@ -143,7 +145,7 @@ export default function BarrelsOverview(props: { db: Firestore }) {
         aria-describedby="alert-dialog-description"
       >
         <DialogTitle id="alert-dialog-title">
-          Are you sure you want to delete barrel {deleteBarrelId}?
+          Are you sure you want to delete barrel {barrelToDelete?.name}?
         </DialogTitle>
         <DialogActions>
           <Button onClick={handleCloseBarrelDeleteConfirm}>Cancel</Button>
