@@ -9,24 +9,26 @@ import MenuIcon from '@mui/icons-material/Menu';
 import Container from '@mui/material/Container';
 import Button from '@mui/material/Button';
 import MenuItem from '@mui/material/MenuItem';
-import {NavLink} from "react-router-dom";
+import {NavLink, useNavigate} from "react-router-dom";
 
 const pages = ['reports', 'barrels'];
 
 function VinoBarrelAppBar() {
   const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
+  const navigate = useNavigate();
 
   const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorElNav(event.currentTarget);
   };
 
-  const handleCloseNavMenu = () => {
+  const handleCloseNavMenu = (page: string) => {
     setAnchorElNav(null);
+    navigate(`/${page}`)
   };
 
   return (
     <AppBar position="static" color={'inherit'} sx={{mb: 3}}>
-      <Container maxWidth="xl">
+      <Container>
         <Toolbar disableGutters>
           <Typography
             variant="h5"
@@ -43,7 +45,22 @@ function VinoBarrelAppBar() {
             Vino<span className={'bold'}>Barrel</span>
           </Typography>
 
-          <Box sx={{flexGrow: 1, display: {xs: 'flex', md: 'none'}}}>
+          <Typography
+            variant="h5"
+            noWrap
+            component="a"
+            href=""
+            sx={{
+              mr: 2,
+              display: {xs: 'flex', md: 'none'},
+              flexGrow: 1,
+              color: 'inherit',
+              textDecoration: 'none',
+            }}
+          >
+            Vino<span className={'bold'}>Barrel</span>
+          </Typography>
+          <Box sx={{flexGrow: 0, display: {xs: 'flex', md: 'none'}}}>
             <IconButton
               size="large"
               aria-label="account of current user"
@@ -73,27 +90,12 @@ function VinoBarrelAppBar() {
               }}
             >
               {pages.map((page) => (
-                <MenuItem key={page} onClick={handleCloseNavMenu}>
+                <MenuItem key={page} onClick={() => handleCloseNavMenu(page)}>
                   <Typography textAlign="center">{page}</Typography>
                 </MenuItem>
               ))}
             </Menu>
           </Box>
-          <Typography
-            variant="h5"
-            noWrap
-            component="a"
-            href=""
-            sx={{
-              mr: 2,
-              display: {xs: 'flex', md: 'none'},
-              flexGrow: 1,
-              color: 'inherit',
-              textDecoration: 'none',
-            }}
-          >
-            Vino<span className={'bold'}>Barrel</span>
-          </Typography>
           <Box sx={{flexGrow: 1, display: {xs: 'none', md: 'flex'}}}>
             {pages.map((page) => (
               <NavLink

@@ -1,9 +1,11 @@
 import {
+  Chip,
   CircularProgress,
-  Container, FormControl,
+  Container, Divider, FormControl,
   InputLabel, MenuItem, Select,
   Stack
 } from "@mui/material";
+import Grid from '@mui/material/Unstable_Grid2'
 import * as React from "react";
 import {useCallback, useEffect, useState} from "react";
 import {useParams} from "react-router-dom";
@@ -12,6 +14,8 @@ import Box from "@mui/material/Box";
 import {Barrel} from "./BarrelsOverview";
 import {doc, getDoc} from "firebase/firestore";
 import {Firestore} from "@firebase/firestore";
+
+const kegIds = ['red', 'green', 'blue'] as const;
 
 export default function BarrelEdit(props: { db: Firestore }) {
   // const navigate = useNavigate();
@@ -69,24 +73,24 @@ export default function BarrelEdit(props: { db: Firestore }) {
   // }
 
   // const saveBarrel = () => {
-    // return fetch(`http://${process.env.REACT_APP_SERVER_IP_ADDRESS}:${process.env.REACT_APP_SERVER_API_PORT}/barrels`, {
-    //   method: 'POST',
-    //   headers: {
-    //     'Content-Type': 'application/json'
-    //   },
-    //   body: JSON.stringify({
-    //     ...barrel,
-    //     id: barrelId,
-    //   })
-    // })
-    //   .then(response => {
-    //     return response.json()
-    //   })
-    //   .then(() => {
-    //   })
+  // return fetch(`http://${process.env.REACT_APP_SERVER_IP_ADDRESS}:${process.env.REACT_APP_SERVER_API_PORT}/barrels`, {
+  //   method: 'POST',
+  //   headers: {
+  //     'Content-Type': 'application/json'
+  //   },
+  //   body: JSON.stringify({
+  //     ...barrel,
+  //     id: barrelId,
+  //   })
+  // })
+  //   .then(response => {
+  //     return response.json()
+  //   })
+  //   .then(() => {
+  //   })
   // }
 
-  const handleIdSelect = async (kegId: 'red' | 'blue' | 'green', kegIndex: number) => {
+  const handleIdSelect = async (kegId: typeof kegIds[number], kegIndex: number) => {
     setBarrel(barrel => {
       barrel.kegs[kegIndex].id = kegId
       return {...barrel}
@@ -174,74 +178,67 @@ export default function BarrelEdit(props: { db: Firestore }) {
       autoComplete="off"
     >
       {!isLoading &&
-          <Stack spacing={6}>
+          <>
               <TextField id={`barrelName`} name={`barrelName`} label={'Barrel Name'}
                          value={barrel?.name} onChange={handleBarrelNameChange} placeholder={'Barrel Name'}
-                         sx={{width: '45ch'}} inputProps={{maxLength: 45}}
-              />
+                         inputProps={{maxLength: 45}}/>
             {barrel.kegs.map((keg, index) =>
-              <Stack spacing={2}>
-                <FormControl>
-                  <InputLabel id={`${keg.id}-id-select-label`}>ID</InputLabel>
-                  <Select
-                    labelId={`${keg.id}-id-select-label`}
-                    id={`${keg.id}-id-select`}
-                    value={keg.id}
-                    label="ID"
-                    name={`${keg.id}_id`}
-                  >
-                    <MenuItem key={'red'} value={'red'} onClick={() => handleIdSelect('red', index)}>red</MenuItem>
-                    <MenuItem key={'green'} value={'green'}
-                              onClick={() => handleIdSelect('green', index)}>green</MenuItem>
-                    <MenuItem key={'blue'} value={'blue'} onClick={() => handleIdSelect('blue', index)}>blue</MenuItem>
-                  </Select>
-                </FormControl>
+              <div>
+                <Divider variant="middle" sx={{m: 4}}>
+                  <Chip label={keg.id.toUpperCase()}/>
+                </Divider>
+                <TextField
+                  id={`${keg.id}-select-id`}
+                  select
+                  label="Keg ID"
+                  value={keg.id}
+                  margin={'dense'}
+                >
+                  {kegIds.map((kegId) => (
+                    <MenuItem key={kegId} value={kegId} onClick={() => handleIdSelect(kegId, index)}>
+                      {kegId}
+                    </MenuItem>
+                  ))}
+                </TextField>
                 <TextField id={`${keg.id}-keg-name`} name={`${keg.id}KegName`} label={'Name'}
                            value={keg.name} onChange={(event) => handleNameChange(event.target.value, index)}
-                           placeholder={'Name'} inputProps={{maxLength: 50}}
-                />
+                           placeholder={'Name'} inputProps={{maxLength: 50}} margin={'dense'}/>
                 <TextField id={`${keg.id}-keg-info`} name={`${keg.id}KegInfo`} label={'Info'}
                            value={keg.info} onChange={(event) => handleInfoChange(event.target.value, index)}
-                           placeholder={'Info'} inputProps={{maxLength: 100}}
-                />
+                           placeholder={'Info'} inputProps={{maxLength: 100}}/>
                 <TextField id={`${keg.id}-keg-image`} name={`${keg.id}KegImage`} label={'Image'}
                            value={keg.image} onChange={(event) => handleImageChange(event.target.value, index)}
-                           placeholder={'Image'} inputProps={{maxLength: 100}}
-                />
-                <TextField id={`${keg.id}-keg-milliliters`} name={`${keg.id}KegMilliliters`} label={'Milliliters'}
-                           value={keg.milliliters}
-                           onChange={(event) => handleMillilitersChange(event.target.value, index)}
-                           placeholder={'Milliliters'} inputProps={{maxLength: 100}}
-                />
-                <TextField id={`${keg.id}-keg-tasting-notes`} name={`${keg.id}KegTastingNotes`} label={'Tasting Notes'}
+                           placeholder={'Image'} inputProps={{maxLength: 100}}/>
+                <TextField id={`${keg.id}-keg-tasting-notes`} name={`${keg.id}KegTastingNotes`}
+                           label={'Tasting Notes'}
                            value={keg.tastingNotes.join(', ')}
                            onChange={(event) => handleTastingNotesChange(event.target.value, index)}
-                           placeholder={'Tasting Notes'} multiline={true} inputProps={{maxLength: 300}}
-                />
+                           placeholder={'Tasting Notes'} multiline={true} inputProps={{maxLength: 300}}/>
                 <TextField id={`${keg.id}-keg-small-price`} name={`${keg.id}KegSmallPrice`} label={'Small Price'}
                            value={keg.smallPrice}
                            onChange={(event) => handleSmallPriceChange(event.target.value, index)}
-                           placeholder={'Small Price'} inputProps={{maxLength: 6}}
-                />
+                           placeholder={'Small Price'} inputProps={{maxLength: 6}}/>
                 <TextField id={`${keg.id}-keg-small-milliliters`} name={`${keg.id}KegSmallMilliliters`}
                            label={'Small Milliliters'}
                            value={keg.smallMilliliters}
                            onChange={(event) => handleSmallMillilitersChange(event.target.value, index)}
-                           placeholder={'Small Milliliters'} inputProps={{maxLength: 6}}
-                />
+                           placeholder={'Small Milliliters'} inputProps={{maxLength: 6}}/>
                 <TextField id={`${keg.id}-keg-full-price`} name={`${keg.id}KegFullPrice`} label={'Full Price'}
-                           value={keg.fullPrice} onChange={(event) => handleFullPriceChange(event.target.value, index)}
-                           placeholder={'Full Price'} inputProps={{maxLength: 6}}
-                />
+                           value={keg.fullPrice}
+                           onChange={(event) => handleFullPriceChange(event.target.value, index)}
+                           placeholder={'Full Price'} inputProps={{maxLength: 6}}/>
                 <TextField id={`${keg.id}-keg-full-milliliters`} name={`${keg.id}KegFullMilliliters`}
                            label={'Full Milliliters'}
                            value={keg.fullMilliliters}
                            onChange={(event) => handleFullMillilitersChange(event.target.value, index)}
-                           placeholder={'Full Milliliters'} inputProps={{maxLength: 6}}
-                />
-              </Stack>
+                           placeholder={'Full Milliliters'} inputProps={{maxLength: 6}}/>
+                <TextField id={`${keg.id}-keg-milliliters`} name={`${keg.id}KegMilliliters`} label={'Milliliters'}
+                           value={keg.milliliters}
+                           onChange={(event) => handleMillilitersChange(event.target.value, index)}
+                           placeholder={'Milliliters'} inputProps={{maxLength: 100}}/>
+              </div>
             )}
-          </Stack>
+          </>
       }
       {isLoading &&
           <Box sx={{
