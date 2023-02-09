@@ -9,7 +9,7 @@ import {
 import Grid from '@mui/material/Unstable_Grid2';
 import {Chart as ChartJS, BarElement, CategoryScale, Legend, LinearScale, Title, Tooltip, ArcElement} from "chart.js";
 import {Bar, Pie} from "react-chartjs-2";
-import {collection, query, where, getDocs, Timestamp, orderBy} from "firebase/firestore";
+import {collection, query, where, Timestamp, orderBy, onSnapshot} from "firebase/firestore";
 import {Firestore} from "@firebase/firestore";
 
 const groupArray = require('group-array');
@@ -139,35 +139,39 @@ export default function Reports(props: { db: Firestore }) {
   const getTransactions = useCallback(async () => {
     const timestamp = Timestamp.now().toMillis() - (timeframeHour * 3600000)
     const q = query(collection(props.db, "transactions"), where("timestamp", ">=", Timestamp.fromMillis(timestamp)), orderBy("timestamp", "desc"));
-    const querySnapshot = await getDocs(q);
-    const transactions: Transaction[] = []
-    querySnapshot.forEach((doc) => {
-      transactions.push(doc.data() as Transaction)
+    // const querySnapshot = await getDocs(q);
+    return onSnapshot(q, (querySnapshot) => {
+      const transactions: Transaction[] = []
+      querySnapshot.forEach((doc) => {
+        transactions.push(doc.data() as Transaction)
+      });
+      let _totals: Total[] | [] = []
+      if (transactions.length > 0) {
+        const groupedTransactions = groupArray(transactions, 'name')
+        _totals = Object.keys(groupedTransactions).map((name: string) => {
+          return {
+            name: name,
+            pouredML: groupedTransactions[name].reduce(
+              (accumulator: any, currentValue: any) => accumulator + currentValue.millilitersPoured,
+              0
+            ),
+            priceCents: groupedTransactions[name].reduce(
+              (accumulator: any, currentValue: any) => accumulator + currentValue.price,
+              0
+            ),
+            glasses: groupedTransactions[name].length,
+          }
+        })
+      }
+      setTotals(_totals)
     });
-
-    let _totals: Total[] | [] = []
-    if (transactions.length > 0) {
-      const groupedTransactions = groupArray(transactions, 'name')
-      _totals = Object.keys(groupedTransactions).map((name: string) => {
-        return {
-          name: name,
-          pouredML: groupedTransactions[name].reduce(
-            (accumulator: any, currentValue: any) => accumulator + currentValue.millilitersPoured,
-            0
-          ),
-          priceCents: groupedTransactions[name].reduce(
-            (accumulator: any, currentValue: any) => accumulator + currentValue.price,
-            0
-          ),
-          glasses: groupedTransactions[name].length,
-        }
-      })
-    }
-    setTotals(_totals)
   }, [props.db, timeframeHour])
 
   useEffect(() => {
-    getTransactions().then()
+    const unsubscribe = getTransactions
+    return () => {
+      unsubscribe().then()
+    }
   }, [getTransactions])
 
   useEffect(() => {
