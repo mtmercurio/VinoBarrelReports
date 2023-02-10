@@ -27,7 +27,7 @@ const defaultKeg: Keg = {
   info: '',
   image: '',
   milliliters: 0,
-  tastingNotes: [],
+  tastingNotes: '',
   smallPrice: 0,
   fullPrice: 0,
   smallMilliliters: 0,
@@ -147,9 +147,8 @@ export default function BarrelEdit(props: { db: Firestore }) {
 
   const handleTastingNotesChange = (tastingNotes: string) => {
     setHasChanged(true)
-    const tastingNotesArray = tastingNotes.split(', ')
     setBarrel(barrel => {
-      barrel.kegs[kegIndex].tastingNotes = tastingNotesArray
+      barrel.kegs[kegIndex].tastingNotes = tastingNotes
       return {...barrel}
     })
   }
@@ -356,7 +355,7 @@ export default function BarrelEdit(props: { db: Firestore }) {
                       <TextField id={`${barrel.kegs[kegIndex].id}-keg-tasting-notes`}
                                  name={`${barrel.kegs[kegIndex].id}KegTastingNotes`}
                                  label={'Tasting Notes'}
-                                 value={barrel.kegs[kegIndex].tastingNotes.join(', ')}
+                                 value={barrel.kegs[kegIndex].tastingNotes}
                                  onChange={(event) => handleTastingNotesChange(event.target.value)}
                                  placeholder={'Tasting Notes'} multiline={true} inputProps={{maxLength: 300}}
                                  fullWidth/>

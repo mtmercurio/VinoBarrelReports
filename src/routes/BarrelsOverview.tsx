@@ -25,7 +25,7 @@ export type Keg = {
   info: string;
   image: string;
   milliliters: number;
-  tastingNotes: string[];
+  tastingNotes: string;
   smallPrice: number;
   smallMilliliters: number;
   fullPrice: number;
