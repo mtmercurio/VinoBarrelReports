@@ -24,12 +24,12 @@ export type Keg = {
   name: string;
   info: string;
   image: string;
-  milliliters: number;
+  ounces: number;
   tastingNotes: string;
   smallPrice: number;
-  smallMilliliters: number;
+  smallOunces: number;
   fullPrice: number;
-  fullMilliliters: number;
+  fullOunces: number;
 }
 
 export type Barrel = {
@@ -85,10 +85,6 @@ export default function BarrelsOverview(props: { db: Firestore }) {
     navigate(`/new`);
   }
 
-  const millilitersToOunces = (milliliters: number): number => {
-    return milliliters / 29.574
-  }
-
   return (
     <Container>
       <Grid container spacing={3}>
@@ -105,10 +101,10 @@ export default function BarrelsOverview(props: { db: Firestore }) {
 
                   {barrel.kegs.map((keg, index) =>
                     <ListItem key={keg.id + index}
-                              sx={{color: keg.milliliters < keg.fullMilliliters ? 'red' : 'inherit'}}
+                              sx={{color: keg.ounces < keg.fullOunces ? 'red' : 'inherit'}}
                               secondaryAction={
                                 <Typography>
-                                  {millilitersToOunces(keg.milliliters).toFixed(2)} oz
+                                  {keg.ounces.toFixed(2)} oz
                                 </Typography>
                               }
                     >

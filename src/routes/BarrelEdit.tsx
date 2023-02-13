@@ -26,12 +26,12 @@ const defaultKeg: Keg = {
   name: 'New Keg',
   info: '',
   image: '',
-  milliliters: 0,
+  ounces: 0,
   tastingNotes: '',
   smallPrice: 0,
   fullPrice: 0,
-  smallMilliliters: 0,
-  fullMilliliters: 0,
+  smallOunces: 0,
+  fullOunces: 0,
 }
 
 export default function BarrelEdit(props: { db: Firestore }) {
@@ -135,11 +135,11 @@ export default function BarrelEdit(props: { db: Firestore }) {
     })
   }
 
-  const handleMillilitersChange = (milliliters: string) => {
+  const handleOuncesChange = (ounces: string) => {
     setHasChanged(true)
-    if (!isNaN(Number(milliliters))) {
+    if (!isNaN(Number(ounces))) {
       setBarrel(barrel => {
-        barrel.kegs[kegIndex].milliliters = parseInt(milliliters)
+        barrel.kegs[kegIndex].ounces = parseInt(ounces)
         return {...barrel}
       })
     }
@@ -163,11 +163,11 @@ export default function BarrelEdit(props: { db: Firestore }) {
     }
   }
 
-  const handleSmallMillilitersChange = (smallMilliliters: string) => {
+  const handleSmallOuncesChange = (smallOunces: string) => {
     setHasChanged(true)
-    if (!isNaN(Number(smallMilliliters))) {
+    if (!isNaN(Number(smallOunces))) {
       setBarrel(barrel => {
-        barrel.kegs[kegIndex].smallMilliliters = parseInt(smallMilliliters)
+        barrel.kegs[kegIndex].smallOunces = parseInt(smallOunces)
         return {...barrel}
       })
     }
@@ -183,11 +183,11 @@ export default function BarrelEdit(props: { db: Firestore }) {
     }
   }
 
-  const handleFullMillilitersChange = (fullMilliliters: string) => {
+  const handleFullOuncesChange = (fullOunces: string) => {
     setHasChanged(true)
-    if (!isNaN(Number(fullMilliliters))) {
+    if (!isNaN(Number(fullOunces))) {
       setBarrel(barrel => {
-        barrel.kegs[kegIndex].fullMilliliters = parseInt(fullMilliliters)
+        barrel.kegs[kegIndex].fullOunces = parseInt(fullOunces)
         return {...barrel}
       })
     }
@@ -326,13 +326,13 @@ export default function BarrelEdit(props: { db: Firestore }) {
                       </TextField>
                   </Grid>
                   <Grid xs={6} sm={2}>
-                      <TextField id={`${barrel.kegs[kegIndex].id}-keg-milliliters`}
-                                 name={`${barrel.kegs[kegIndex].id}KegMilliliters`}
+                      <TextField id={`${barrel.kegs[kegIndex].id}-keg-ounces`}
+                                 name={`${barrel.kegs[kegIndex].id}KegOunces`}
                                  label={'Total Amount in Keg'}
-                                 value={barrel.kegs[kegIndex].milliliters}
-                                 onChange={(event) => handleMillilitersChange(event.target.value)}
+                                 value={barrel.kegs[kegIndex].ounces}
+                                 onChange={(event) => handleOuncesChange(event.target.value)}
                                  InputProps={{
-                                   endAdornment: <InputAdornment position="end">ml</InputAdornment>,
+                                   endAdornment: <InputAdornment position="end">oz</InputAdornment>,
                                  }}
                                  placeholder={'750'} inputProps={{maxLength: 100}} fullWidth/>
                   </Grid>
@@ -372,15 +372,15 @@ export default function BarrelEdit(props: { db: Firestore }) {
                                  placeholder={'300'} inputProps={{maxLength: 6}} fullWidth/>
                   </Grid>
                   <Grid xs={6} sm={2}>
-                      <TextField id={`${barrel.kegs[kegIndex].id}-keg-small-milliliters`}
-                                 name={`${barrel.kegs[kegIndex].id}KegSmallMilliliters`}
+                      <TextField id={`${barrel.kegs[kegIndex].id}-keg-small-ounces`}
+                                 name={`${barrel.kegs[kegIndex].id}KegSmallOunces`}
                                  label={'Small Pour Amount'}
-                                 value={barrel.kegs[kegIndex].smallMilliliters}
+                                 value={barrel.kegs[kegIndex].smallOunces}
                                  InputProps={{
-                                   endAdornment: <InputAdornment position="end">ml</InputAdornment>,
+                                   endAdornment: <InputAdornment position="end">oz</InputAdornment>,
                                  }}
-                                 onChange={(event) => handleSmallMillilitersChange(event.target.value)}
-                                 placeholder={'45'} inputProps={{maxLength: 6}} fullWidth/>
+                                 onChange={(event) => handleSmallOuncesChange(event.target.value)}
+                                 placeholder={'1.0'} inputProps={{maxLength: 6}} fullWidth/>
                   </Grid>
                   <Grid xs={6} sm={2}>
                       <TextField id={`${barrel.kegs[kegIndex].id}-keg-full-price`}
@@ -394,15 +394,15 @@ export default function BarrelEdit(props: { db: Firestore }) {
                                  placeholder={'900'} inputProps={{maxLength: 6}} fullWidth/>
                   </Grid>
                   <Grid xs={6} sm={2}>
-                      <TextField id={`${barrel.kegs[kegIndex].id}-keg-full-milliliters`}
-                                 name={`${barrel.kegs[kegIndex].id}KegFullMilliliters`}
+                      <TextField id={`${barrel.kegs[kegIndex].id}-keg-full-ounces`}
+                                 name={`${barrel.kegs[kegIndex].id}KegFullOunces`}
                                  label={'Full Pour Amount'}
-                                 value={barrel.kegs[kegIndex].fullMilliliters}
-                                 onChange={(event) => handleFullMillilitersChange(event.target.value)}
+                                 value={barrel.kegs[kegIndex].fullOunces}
+                                 onChange={(event) => handleFullOuncesChange(event.target.value)}
                                  InputProps={{
-                                   endAdornment: <InputAdornment position="end">ml</InputAdornment>,
+                                   endAdornment: <InputAdornment position="end">oz</InputAdornment>,
                                  }}
-                                 placeholder={'177'} inputProps={{maxLength: 6}} fullWidth/>
+                                 placeholder={'5.0'} inputProps={{maxLength: 6}} fullWidth/>
                   </Grid>
                   <Grid xs={12}>
                       <Button variant={'outlined'} onClick={handleShowKegDeleteConfirm} color="error" size="large">

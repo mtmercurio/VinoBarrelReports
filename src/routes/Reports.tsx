@@ -36,8 +36,8 @@ type Total = {
 type Transaction = {
   glass_id: string;
   kegId: string;
-  millilitersPoured: number;
-  millilitersRemaining: number;
+  ouncesPoured: number;
+  ouncesRemaining: number;
   name: string;
   pourType: string;
   price: number;
@@ -67,16 +67,16 @@ export default function Reports(props: { db: Firestore }) {
     }
   }
 
-  const convertMillilitersToUnit = (milliliters: number, unitType: typeof unitsOfMeasurement[number]): number => {
+  const convertOuncesToUnit = (ounces: number, unitType: typeof unitsOfMeasurement[number]): number => {
     switch (unitType) {
-      case 'milliliters':
-        return milliliters
       case 'ounces':
-        return Math.round(milliliters * 0.033814 * 10) / 10
+        return ounces
+      case 'milliliters':
+        return Math.round(ounces * 29.574 * 10) / 10
       case 'glasses (6oz)':
-        return Math.round(milliliters / 177.441)
+        return Math.round((ounces / 6) * 10) / 10
       case 'bottles (750ml)':
-        return Math.round((milliliters / 750) * 10) / 10
+        return Math.round(((ounces * 29.574) / 750) * 10) / 10
       default:
         return 0
     }
@@ -151,7 +151,7 @@ export default function Reports(props: { db: Firestore }) {
           return {
             name: name,
             pouredML: groupedTransactions[name].reduce(
-              (accumulator: any, currentValue: any) => accumulator + currentValue.millilitersPoured,
+              (accumulator: any, currentValue: any) => accumulator + currentValue.ouncesPoured,
               0
             ),
             priceCents: groupedTransactions[name].reduce(
@@ -175,7 +175,7 @@ export default function Reports(props: { db: Firestore }) {
     let _totalData: number[] = []
     let poured = 0;
     totals?.forEach(total => {
-      poured = convertMillilitersToUnit(total.pouredML, unit)
+      poured = convertOuncesToUnit(total.pouredML, unit)
       _totalPoured += poured
       _totalMoney += total.priceCents
       _totalData.push(poured)
