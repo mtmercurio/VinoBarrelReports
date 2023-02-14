@@ -7,6 +7,8 @@ import BarrelEdit from "./routes/BarrelEdit";
 import {initializeApp} from "firebase/app";
 import {getFirestore} from "firebase/firestore";
 import Layout from "./Layout";
+import BeveragesOverview from "./routes/BeveragesOverview";
+import BeverageEdit from "./routes/BeverageEdit";
 // https://firebase.google.com/docs/web/setup#available-libraries
 
 const firebaseConfig = {
@@ -30,8 +32,9 @@ function App() {
         <Route index element={<Reports db={db}/>}/>
         <Route path="reports" element={<Reports db={db}/>}/>
         <Route path="barrels" element={<BarrelsOverview db={db}/>}/>
-        <Route path="edit/:barrelId" element={<BarrelEdit db={db}/>}/>
-        <Route path="new" element={<BarrelEdit db={db}/>}/>
+        <Route path="barrel/:barrelId" element={<BarrelEdit db={db}/>}/>
+        <Route path="beverages" element={<BeveragesOverview db={db}/>}/>
+        <Route path="beverage/:beverageId" element={<BeverageEdit db={db}/>}/>
 
         <Route path="*" element={
           <main style={{padding: "1rem"}}>

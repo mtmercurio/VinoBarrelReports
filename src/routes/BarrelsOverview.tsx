@@ -17,15 +17,15 @@ import {useNavigate} from "react-router-dom";
 import Box from "@mui/material/Box";
 import AddIcon from '@mui/icons-material/Add';
 import {Firestore} from "@firebase/firestore";
-import {collection, doc, getDocs, query, deleteDoc} from "firebase/firestore";
+import {collection, doc, getDocs, query, deleteDoc, addDoc, getDoc} from "firebase/firestore";
+import {Beverage} from "./BeveragesOverview";
+import {DocumentReference} from '@firebase/firestore-types';
 
 export type Keg = {
   id: string;
-  name: string;
-  info: string;
-  image: string;
+  beverageRef?: DocumentReference;
+  beverage?: Beverage;
   ounces: number;
-  tastingNotes: string;
   smallPrice: number;
   smallOunces: number;
   fullPrice: number;
@@ -33,7 +33,7 @@ export type Keg = {
 }
 
 export type Barrel = {
-  id: string;
+  id?: string;
   name: string;
   temperature: number;
   kegs: Keg[];
@@ -49,15 +49,43 @@ export default function BarrelsOverview(props: { db: Firestore }) {
     const q = query(collection(props.db, "barrels"));
     const querySnapshot = await getDocs(q);
     const barrels: Barrel[] = []
-    querySnapshot.forEach((doc) => {
-      barrels.push({...doc.data() as Barrel, id: doc.id})
+
+    querySnapshot.forEach((barrelDoc) => {
+      const barrel = {...(barrelDoc.data() as Barrel), id: barrelDoc.id}
+      barrels.push(barrel)
     });
-    setBarrels(barrels)
+    return [...barrels]
   }, [props.db])
 
+  const getKegs = useCallback(async (barrels: Barrel[]) => {
+    const updatedBarrels = []
+    for (const barrel of barrels) {
+      const kegs: Keg[] = []
+      const kegRefs = barrel.kegs;
+      for (const keg of kegRefs) {
+        if (keg?.beverageRef) {
+          const docRef = doc(props.db, keg.beverageRef.path);
+          const docSnap = await getDoc(docRef)
+          if (docSnap.exists()) {
+            kegs.push({...keg, beverage: (docSnap.data() as Beverage)})
+          } else {
+            console.log("No such document!");
+          }
+        }
+      }
+      updatedBarrels.push({...barrel, kegs: kegs})
+    }
+    return updatedBarrels;
+  }, [props.db]);
+
   useEffect(() => {
-    getBarrels().then()
-  }, [getBarrels])
+    getBarrels().then((barrels) => {
+      getKegs(barrels).then(updatedBarrels => {
+        console.log(updatedBarrels)
+        setBarrels(updatedBarrels)
+      })
+    })
+  }, [getBarrels, getKegs])
 
   const handleShowBarrelDeleteConfirm = (barrel: Barrel) => {
     setBarrelToDelete(barrel);
@@ -69,7 +97,7 @@ export default function BarrelsOverview(props: { db: Firestore }) {
   }
 
   const deleteBarrel = async () => {
-    if (barrelToDelete) {
+    if (barrelToDelete?.id) {
       await deleteDoc(doc(props.db, "barrels", barrelToDelete.id));
     }
   }
@@ -81,8 +109,39 @@ export default function BarrelsOverview(props: { db: Firestore }) {
     })
   }
 
-  const handleAddBarrelClick = () => {
-    navigate(`/new`);
+  const handleAddBarrelClick = async () => {
+    const newBarrel: Barrel = {
+      name: '',
+      temperature: 0.0,
+      kegs: [
+        {
+          id: 'red',
+          ounces: 25,
+          smallPrice: 3.00,
+          smallOunces: 1.5,
+          fullPrice: 9.00,
+          fullOunces: 9.00
+        },
+        {
+          id: 'green',
+          ounces: 25,
+          smallPrice: 3.00,
+          smallOunces: 1.5,
+          fullPrice: 9.00,
+          fullOunces: 9.00
+        },
+        {
+          id: 'blue',
+          ounces: 25,
+          smallPrice: 3.00,
+          smallOunces: 1.5,
+          fullPrice: 9.00,
+          fullOunces: 9.00
+        },
+      ]
+    }
+    const docRef = await addDoc(collection(props.db, "barrels"), newBarrel);
+    navigate(`/barrel/${docRef.id}`)
   }
 
   return (
@@ -104,13 +163,14 @@ export default function BarrelsOverview(props: { db: Firestore }) {
                               sx={{color: keg.ounces < keg.fullOunces ? 'red' : 'inherit'}}
                               secondaryAction={
                                 <Typography>
-                                  {keg.ounces.toFixed(2)} oz
+                                  {keg.ounces?.toFixed(2)} oz
                                 </Typography>
                               }
                     >
-                      <ListItemText primary={keg.name}/>
+                      <ListItemText primary={keg.beverage?.name}/>
                     </ListItem>
-                  )}
+                  )
+                  }
                 </CardContent>
               </CardActionArea>
               <CardActions>

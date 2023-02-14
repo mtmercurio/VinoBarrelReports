@@ -11,7 +11,7 @@ import Button from '@mui/material/Button';
 import MenuItem from '@mui/material/MenuItem';
 import {NavLink, useNavigate} from "react-router-dom";
 
-const pages = ['reports', 'barrels'];
+const pages = ['reports', 'barrels', 'beverages'];
 
 function VinoBarrelAppBar() {
   const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);

@@ -22,11 +22,7 @@ import {FormContainer, SelectElement, TextFieldElement} from "react-hook-form-mu
 const kegIds = ['red', 'green', 'blue'] as const;
 const defaultKeg: Keg = {
   id: 'red',
-  name: 'New Keg',
-  info: '',
-  image: '',
   ounces: 0,
-  tastingNotes: '',
   smallPrice: 0,
   fullPrice: 0,
   smallOunces: 0,
@@ -206,14 +202,14 @@ export default function BarrelEdit(props: { db: Firestore }) {
                       Save
                   </Button>
               </Stack>
-              <Box sx={{borderBottom: 1, borderColor: 'divider', mb: 3}}>
-                  <Tabs value={kegIndex} variant="scrollable" scrollButtons="auto" onChange={handleTabChange}
-                        aria-label="keg tabs">
-                    {barrel.kegs.map((keg, index) =>
-                      <Tab key={index} label={keg.name}/>
-                    )}
-                  </Tabs>
-              </Box>
+              {/*<Box sx={{borderBottom: 1, borderColor: 'divider', mb: 3}}>*/}
+              {/*    <Tabs value={kegIndex} variant="scrollable" scrollButtons="auto" onChange={handleTabChange}*/}
+              {/*          aria-label="keg tabs">*/}
+              {/*      {barrel.kegs.map((keg, index) =>*/}
+              {/*        <Tab key={index} label={keg.beverage.name}/>*/}
+              {/*      )}*/}
+              {/*    </Tabs>*/}
+              {/*</Box>*/}
             {barrel.kegs.map((keg, index) => (
               <React.Fragment key={index}>
                 {kegIndex === index &&
@@ -298,20 +294,20 @@ export default function BarrelEdit(props: { db: Firestore }) {
               <CircularProgress/>
           </Box>
       }
-      <Dialog
-        open={showDeleteKegConfirm}
-        onClose={handleCloseKegDeleteConfirm}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
-      >
-        <DialogTitle id="alert-dialog-title">
-          Are you sure you want to delete keg {barrel.kegs[kegIndex].name}?
-        </DialogTitle>
-        <DialogActions>
-          <Button onClick={handleCloseKegDeleteConfirm}>Cancel</Button>
-          <Button onClick={handleDeleteKegClick} color={'error'}>Delete Keg</Button>
-        </DialogActions>
-      </Dialog>
+      {/*<Dialog*/}
+      {/*  open={showDeleteKegConfirm}*/}
+      {/*  onClose={handleCloseKegDeleteConfirm}*/}
+      {/*  aria-labelledby="alert-dialog-title"*/}
+      {/*  aria-describedby="alert-dialog-description"*/}
+      {/*>*/}
+      {/*  <DialogTitle id="alert-dialog-title">*/}
+      {/*    Are you sure you want to delete keg {barrel.kegs[kegIndex].beverage.name}?*/}
+      {/*  </DialogTitle>*/}
+      {/*  <DialogActions>*/}
+      {/*    <Button onClick={handleCloseKegDeleteConfirm}>Cancel</Button>*/}
+      {/*    <Button onClick={handleDeleteKegClick} color={'error'}>Delete Keg</Button>*/}
+      {/*  </DialogActions>*/}
+      {/*</Dialog>*/}
     </Container>
   )
 }
