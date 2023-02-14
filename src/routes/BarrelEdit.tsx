@@ -1,14 +1,12 @@
 import {
   CircularProgress,
-  Container, Dialog, DialogActions, DialogTitle, Fab, InputAdornment,
-  MenuItem, Stack, SxProps,
+  Container, Dialog, DialogActions, DialogTitle, Fab, InputAdornment, Stack, SxProps,
   Tab, Tabs, Zoom
 } from "@mui/material";
 import Grid from '@mui/material/Unstable_Grid2'
 import * as React from "react";
 import {useCallback, useEffect, useState} from "react";
 import {useParams} from "react-router-dom";
-import TextField from "@mui/material/TextField";
 import Box from "@mui/material/Box";
 import {Barrel, Keg} from "./BarrelsOverview";
 import {doc, getDoc, setDoc, addDoc, collection} from "firebase/firestore";
@@ -19,6 +17,7 @@ import AddIcon from '@mui/icons-material/Add';
 import './BarrelEdit.css'
 import SaveIcon from '@mui/icons-material/Save';
 import Button from "@mui/material/Button";
+import {FormContainer, SelectElement, TextFieldElement} from "react-hook-form-mui";
 
 const kegIds = ['red', 'green', 'blue'] as const;
 const defaultKeg: Keg = {
@@ -34,6 +33,11 @@ const defaultKeg: Keg = {
   fullOunces: 0,
 }
 
+type FormProps = {
+  name: string
+  kegs: Keg[]
+}
+
 export default function BarrelEdit(props: { db: Firestore }) {
   const {barrelId} = useParams<{ barrelId: string }>();
   const theme = useTheme();
@@ -45,8 +49,11 @@ export default function BarrelEdit(props: { db: Firestore }) {
   })
   const [isLoading, setIsLoading] = useState(false);
   const [kegIndex, setKegIndex] = useState(0);
-  const [hasChanged, setHasChanged] = useState(false)
   const [showDeleteKegConfirm, setShowDeleteKegConfirm] = useState(false);
+
+  const onSubmit = (data: FormProps) => {
+    saveBarrel(data)
+  }
 
   const getBarrel = useCallback(async (barrelId: string) => {
     const docRef = doc(props.db, "barrels", barrelId);
@@ -66,16 +73,17 @@ export default function BarrelEdit(props: { db: Firestore }) {
         .then(() => {
           setIsLoading(false);
         })
+    } else {
+      setIsLoading(false)
     }
   }, [getBarrel, barrelId])
 
-  const saveBarrel = async () => {
+  const saveBarrel = async (data: FormProps) => {
     if (barrelId) {
-      await setDoc(doc(props.db, "barrels", barrelId), barrel);
+      await setDoc(doc(props.db, "barrels", barrelId), data, {merge: true});
     } else {
-      await addDoc(collection(props.db, "barrels"), barrel);
+      await addDoc(collection(props.db, "barrels"), data);
     }
-    setHasChanged(false)
   }
 
   const handleShowKegDeleteConfirm = () => {
@@ -93,104 +101,7 @@ export default function BarrelEdit(props: { db: Firestore }) {
     })
     setKegIndex(0)
     setShowDeleteKegConfirm(false)
-    saveBarrel().then()
-  }
-
-  const handleBarrelNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setHasChanged(true)
-    setBarrel(barrel => {
-      return {...barrel, name: event.target.value}
-    })
-  }
-
-  const handleIdSelect = async (kegId: typeof kegIds[number],) => {
-    setHasChanged(true)
-    setBarrel(barrel => {
-      barrel.kegs[kegIndex].id = kegId
-      return {...barrel}
-    })
-  }
-
-  const handleNameChange = (name: string) => {
-    setHasChanged(true)
-    setBarrel(barrel => {
-      barrel.kegs[kegIndex].name = name
-      return {...barrel}
-    })
-  }
-
-  const handleInfoChange = (info: string) => {
-    setHasChanged(true)
-    setBarrel(barrel => {
-      barrel.kegs[kegIndex].info = info
-      return {...barrel}
-    })
-  }
-
-  const handleImageChange = (image: string) => {
-    setHasChanged(true)
-    setBarrel(barrel => {
-      barrel.kegs[kegIndex].image = image
-      return {...barrel}
-    })
-  }
-
-  const handleOuncesChange = (ounces: string) => {
-    setHasChanged(true)
-    if (!isNaN(Number(ounces))) {
-      setBarrel(barrel => {
-        barrel.kegs[kegIndex].ounces = parseInt(ounces)
-        return {...barrel}
-      })
-    }
-  }
-
-  const handleTastingNotesChange = (tastingNotes: string) => {
-    setHasChanged(true)
-    setBarrel(barrel => {
-      barrel.kegs[kegIndex].tastingNotes = tastingNotes
-      return {...barrel}
-    })
-  }
-
-  const handleSmallPriceChange = (smallPrice: string) => {
-    setHasChanged(true)
-    if (!isNaN(Number(smallPrice))) {
-      setBarrel(barrel => {
-        barrel.kegs[kegIndex].smallPrice = parseInt(smallPrice)
-        return {...barrel}
-      })
-    }
-  }
-
-  const handleSmallOuncesChange = (smallOunces: string) => {
-    setHasChanged(true)
-    if (!isNaN(Number(smallOunces))) {
-      setBarrel(barrel => {
-        barrel.kegs[kegIndex].smallOunces = parseInt(smallOunces)
-        return {...barrel}
-      })
-    }
-  }
-
-  const handleFullPriceChange = (fullPrice: string) => {
-    setHasChanged(true)
-    if (!isNaN(Number(fullPrice))) {
-      setBarrel(barrel => {
-        barrel.kegs[kegIndex].fullPrice = parseInt(fullPrice)
-        return {...barrel}
-      })
-    }
-  }
-
-  const handleFullOuncesChange = (fullOunces: string) => {
-    setHasChanged(true)
-    if (!isNaN(Number(fullOunces))) {
-      setBarrel(barrel => {
-        barrel.kegs[kegIndex].fullOunces = parseInt(fullOunces)
-        return {...barrel}
-      })
-    }
+    // saveBarrel().then()
   }
 
   const handleAddKegClick = () => {
@@ -199,7 +110,7 @@ export default function BarrelEdit(props: { db: Firestore }) {
       setKegIndex(barrel.kegs.length - 1)
       return {...barrel}
     })
-    saveBarrel().then()
+    // saveBarrel().then()
   }
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -240,7 +151,7 @@ export default function BarrelEdit(props: { db: Firestore }) {
       sx: fabStyle as SxProps,
       icon: <AddIcon/>,
       label: 'Keg',
-      shouldShow: !hasChanged,
+      shouldShow: true,
       handleOnClick: () => {
         handleAddKegClick()
       }
@@ -250,25 +161,27 @@ export default function BarrelEdit(props: { db: Firestore }) {
       sx: {...fabStyle, ...fabGreenStyle} as SxProps,
       icon: <SaveIcon/>,
       label: 'Save',
-      shouldShow: hasChanged,
+      shouldShow: false,
       handleOnClick: () => {
-        saveBarrel().then()
+        // saveBarrel().then()
       }
     },
   ];
 
+  const defaultValues: FormProps = {
+    name: barrel.name,
+    kegs: barrel.kegs
+  }
+
   return (
-    <Container
-      component="form"
-      noValidate
-      autoComplete="off"
-    >
+    <Container>
       {!isLoading &&
-          <>
+          <FormContainer
+              defaultValues={defaultValues}
+              onSuccess={onSubmit}
+          >
               <Stack spacing={2} direction="row" sx={{mb: 3}}>
-                  <TextField id={`barrelName`} name={`barrelName`} label={'Barrel Name'} sx={{mr: 5}}
-                             value={barrel?.name} onChange={handleBarrelNameChange} placeholder={'Barrel Name'}
-                             inputProps={{maxLength: 45}}/>
+                  <TextFieldElement name={`name`} label={'Barrel Name'} sx={{mr: 5}} required/>
                 {fabs.map((fab) => (
                   <Zoom
                     key={fab.color}
@@ -289,8 +202,7 @@ export default function BarrelEdit(props: { db: Firestore }) {
                           sx={buttonStyle as SxProps}>
                       Add Keg
                   </Button>
-                  <Button variant={'outlined'} color={'success'} disabled={!hasChanged} onClick={saveBarrel}
-                          sx={buttonStyle as SxProps}>
+                  <Button type={'submit'} color={'success'} sx={buttonStyle as SxProps}>
                       Save
                   </Button>
               </Stack>
@@ -302,115 +214,79 @@ export default function BarrelEdit(props: { db: Firestore }) {
                     )}
                   </Tabs>
               </Box>
-              <Grid container spacing={2} sx={{mb: 8}}>
-                  <Grid xs={12} sm={6}>
-                      <TextField id={`${barrel.kegs[kegIndex].id}-keg-name`} name={`${barrel.kegs[kegIndex].id}KegName`}
-                                 label={'Name'}
-                                 value={barrel.kegs[kegIndex].name}
-                                 onChange={(event) => handleNameChange(event.target.value)}
-                                 placeholder={'Name'} inputProps={{maxLength: 50}} fullWidth/>
-                  </Grid>
-                  <Grid xs={6} sm={2}>
-                      <TextField
-                          id={`${barrel.kegs[kegIndex].id}-select-id`}
-                          select
-                          label="Keg ID"
-                          value={barrel.kegs[kegIndex].id}
-                          fullWidth
-                      >
-                        {kegIds.map((kegId) => (
-                          <MenuItem key={kegId} value={kegId} onClick={() => handleIdSelect(kegId)}>
-                            {kegId}
-                          </MenuItem>
-                        ))}
-                      </TextField>
-                  </Grid>
-                  <Grid xs={6} sm={2}>
-                      <TextField id={`${barrel.kegs[kegIndex].id}-keg-ounces`}
-                                 name={`${barrel.kegs[kegIndex].id}KegOunces`}
-                                 label={'Total Amount in Keg'}
-                                 value={barrel.kegs[kegIndex].ounces}
-                                 onChange={(event) => handleOuncesChange(event.target.value)}
-                                 InputProps={{
-                                   endAdornment: <InputAdornment position="end">oz</InputAdornment>,
-                                 }}
-                                 placeholder={'750'} inputProps={{maxLength: 100}} fullWidth/>
-                  </Grid>
-                  <Grid xs={12} sm={6}>
-                      <TextField id={`${barrel.kegs[kegIndex].id}-keg-info`} name={`${barrel.kegs[kegIndex].id}KegInfo`}
-                                 label={'Info'}
-                                 value={barrel.kegs[kegIndex].info}
-                                 onChange={(event) => handleInfoChange(event.target.value)}
-                                 placeholder={'Info'} inputProps={{maxLength: 100}} fullWidth/>
-                  </Grid>
-                  <Grid xs={12} sm={6}>
-                      <TextField id={`${barrel.kegs[kegIndex].id}-keg-image`}
-                                 name={`${barrel.kegs[kegIndex].id}KegImage`}
-                                 label={'Image'}
-                                 value={barrel.kegs[kegIndex].image}
-                                 onChange={(event) => handleImageChange(event.target.value)}
-                                 placeholder={'Image'} inputProps={{maxLength: 100}} fullWidth/>
-                  </Grid>
-                  <Grid xs={12}>
-                      <TextField id={`${barrel.kegs[kegIndex].id}-keg-tasting-notes`}
-                                 name={`${barrel.kegs[kegIndex].id}KegTastingNotes`}
-                                 label={'Tasting Notes'}
-                                 value={barrel.kegs[kegIndex].tastingNotes}
-                                 onChange={(event) => handleTastingNotesChange(event.target.value)}
-                                 placeholder={'Tasting Notes'} multiline={true} inputProps={{maxLength: 300}}
-                                 fullWidth/>
-                  </Grid>
-                  <Grid xs={6} sm={2}>
-                      <TextField id={`${barrel.kegs[kegIndex].id}-keg-small-price`}
-                                 name={`${barrel.kegs[kegIndex].id}KegSmallPrice`}
-                                 label={'Small Price'}
-                                 value={barrel.kegs[kegIndex].smallPrice}
-                                 onChange={(event) => handleSmallPriceChange(event.target.value)}
-                                 InputProps={{
-                                   endAdornment: <InputAdornment position="end">&#162;</InputAdornment>,
-                                 }}
-                                 placeholder={'300'} inputProps={{maxLength: 6}} fullWidth/>
-                  </Grid>
-                  <Grid xs={6} sm={2}>
-                      <TextField id={`${barrel.kegs[kegIndex].id}-keg-small-ounces`}
-                                 name={`${barrel.kegs[kegIndex].id}KegSmallOunces`}
-                                 label={'Small Pour Amount'}
-                                 value={barrel.kegs[kegIndex].smallOunces}
-                                 InputProps={{
-                                   endAdornment: <InputAdornment position="end">oz</InputAdornment>,
-                                 }}
-                                 onChange={(event) => handleSmallOuncesChange(event.target.value)}
-                                 placeholder={'1.0'} inputProps={{maxLength: 6}} fullWidth/>
-                  </Grid>
-                  <Grid xs={6} sm={2}>
-                      <TextField id={`${barrel.kegs[kegIndex].id}-keg-full-price`}
-                                 name={`${barrel.kegs[kegIndex].id}KegFullPrice`}
-                                 label={'Full Price'}
-                                 value={barrel.kegs[kegIndex].fullPrice}
-                                 onChange={(event) => handleFullPriceChange(event.target.value)}
-                                 InputProps={{
-                                   endAdornment: <InputAdornment position="end">&#162;</InputAdornment>,
-                                 }}
-                                 placeholder={'900'} inputProps={{maxLength: 6}} fullWidth/>
-                  </Grid>
-                  <Grid xs={6} sm={2}>
-                      <TextField id={`${barrel.kegs[kegIndex].id}-keg-full-ounces`}
-                                 name={`${barrel.kegs[kegIndex].id}KegFullOunces`}
-                                 label={'Full Pour Amount'}
-                                 value={barrel.kegs[kegIndex].fullOunces}
-                                 onChange={(event) => handleFullOuncesChange(event.target.value)}
-                                 InputProps={{
-                                   endAdornment: <InputAdornment position="end">oz</InputAdornment>,
-                                 }}
-                                 placeholder={'5.0'} inputProps={{maxLength: 6}} fullWidth/>
-                  </Grid>
-                  <Grid xs={12}>
-                      <Button variant={'outlined'} onClick={handleShowKegDeleteConfirm} color="error" size="large">
-                          Delete
-                      </Button>
-                  </Grid>
-              </Grid>
-          </>
+            {barrel.kegs.map((keg, index) => (
+              <React.Fragment key={index}>
+                {kegIndex === index &&
+                    <Grid container spacing={2} sx={{mb: 8}}>
+                        <Grid xs={12} sm={6}>
+                            <TextFieldElement name={`kegs[${index}].name`} label={'Name'} fullWidth/>
+                        </Grid>
+                        <Grid xs={6} sm={3}>
+                            <SelectElement
+                                name={`kegs[${index}].id`}
+                                label="Keg ID"
+                                options={kegIds.map((kegId) => {
+                                  return {id: kegId, label: kegId}
+                                })}
+                                fullWidth
+                            />
+                        </Grid>
+                        <Grid xs={6} sm={3}>
+                            <TextFieldElement name={`kegs[${index}].ounces`} label={'Total Amount in Keg'} fullWidth
+                                              InputProps={{
+                                                endAdornment: <InputAdornment position="end">oz</InputAdornment>,
+                                              }}
+                                              type={'number'}/>
+                        </Grid>
+                        <Grid xs={12} sm={6}>
+                            <TextFieldElement name={`kegs[${index}].info`} label={'Info'} fullWidth/>
+                        </Grid>
+                        <Grid xs={12} sm={6}>
+                            <TextFieldElement name={`kegs[${index}].image`} label={'Image'} fullWidth/>
+                        </Grid>
+                        <Grid xs={12}>
+                            <TextFieldElement name={`kegs[${index}].tastingNotes`} label={'Tasting Notes'} fullWidth
+                                              multiline={true}/>
+                        </Grid>
+                        <Grid xs={6} sm={2}>
+                            <TextFieldElement name={`kegs[${index}].smallPrice`} label={'Small Price'} fullWidth
+                                              InputProps={{
+                                                startAdornment: <InputAdornment position="start">$</InputAdornment>
+                                              }}
+                                              type={'number'}/>
+                        </Grid>
+                        <Grid xs={6} sm={2}>
+                            <TextFieldElement name={`kegs[${index}].smallOunces`} label={'Small Pour Amount'} fullWidth
+                                              InputProps={{
+                                                endAdornment: <InputAdornment position="end">oz</InputAdornment>
+                                              }}
+                                              type={'number'}/>
+                        </Grid>
+                        <Grid xs={6} sm={2}>
+                            <TextFieldElement name={`kegs[${index}].fullPrice`} label={'Full Price'} fullWidth
+                                              InputProps={{
+                                                startAdornment: <InputAdornment position="start">$</InputAdornment>
+                                              }}
+                                              type={'number'}/>
+                        </Grid>
+                        <Grid xs={6} sm={2}>
+                            <TextFieldElement name={`kegs[${index}].fullOunces`} label={'Full Pour Amount'} fullWidth
+                                              InputProps={{
+                                                endAdornment: <InputAdornment position="end">oz</InputAdornment>,
+                                              }}
+                                              type={'number'}/>
+                        </Grid>
+                        <Grid xs={12}>
+                            <Button variant={'outlined'} onClick={handleShowKegDeleteConfirm} color="error"
+                                    size="large">
+                                Delete
+                            </Button>
+                        </Grid>
+                    </Grid>
+                }
+              </React.Fragment>
+            ))}
+          </FormContainer>
       }
       {isLoading &&
           <Box sx={{
