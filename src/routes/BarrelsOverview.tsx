@@ -12,82 +12,31 @@ import {
 } from "@mui/material";
 import Typography from "@mui/material/Typography";
 import * as React from "react";
-import {useCallback, useEffect, useState} from "react";
+import {useEffect, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import Box from "@mui/material/Box";
 import AddIcon from '@mui/icons-material/Add';
-import {Firestore} from "@firebase/firestore";
-import {collection, doc, getDocs, query, deleteDoc, addDoc, getDoc} from "firebase/firestore";
-import {Beverage} from "./BeveragesOverview";
-import {DocumentReference} from '@firebase/firestore-types';
+import {
+  BarrelUI,
+  deleteBarrel,
+  getBarrels,
+  saveBarrel
+} from "../library/FirestoreUtils";
 
-export type Keg = {
-  id: string;
-  beverageRef?: DocumentReference;
-  beverage?: Beverage;
-  ounces: number;
-  smallPrice: number;
-  smallOunces: number;
-  fullPrice: number;
-  fullOunces: number;
-}
-
-export type Barrel = {
-  id?: string;
-  name: string;
-  temperature: number;
-  kegs: Keg[];
-}
-
-export default function BarrelsOverview(props: { db: Firestore }) {
+export default function BarrelsOverview() {
   const navigate = useNavigate();
-  const [barrels, setBarrels] = useState<Barrel[]>([]);
-  const [barrelToDelete, setBarrelToDelete] = useState<Barrel>();
+  const [barrels, setBarrels] = useState<BarrelUI[]>([]);
+  const [barrelToDelete, setBarrelToDelete] = useState<BarrelUI>();
   const [showDeleteBarrelConfirm, setShowDeleteBarrelConfirm] = useState(false);
 
-  const getBarrels = useCallback(async () => {
-    const q = query(collection(props.db, "barrels"));
-    const querySnapshot = await getDocs(q);
-    const barrels: Barrel[] = []
-
-    querySnapshot.forEach((barrelDoc) => {
-      const barrel = {...(barrelDoc.data() as Barrel), id: barrelDoc.id}
-      barrels.push(barrel)
-    });
-    return [...barrels]
-  }, [props.db])
-
-  const getKegs = useCallback(async (barrels: Barrel[]) => {
-    const updatedBarrels = []
-    for (const barrel of barrels) {
-      const kegs: Keg[] = []
-      const kegRefs = barrel.kegs;
-      for (const keg of kegRefs) {
-        if (keg?.beverageRef) {
-          const docRef = doc(props.db, keg.beverageRef.path);
-          const docSnap = await getDoc(docRef)
-          if (docSnap.exists()) {
-            kegs.push({...keg, beverage: (docSnap.data() as Beverage)})
-          } else {
-            console.log("No such document!");
-          }
-        }
-      }
-      updatedBarrels.push({...barrel, kegs: kegs})
-    }
-    return updatedBarrels;
-  }, [props.db]);
-
   useEffect(() => {
-    getBarrels().then((barrels) => {
-      getKegs(barrels).then(updatedBarrels => {
-        console.log(updatedBarrels)
-        setBarrels(updatedBarrels)
+    getBarrels()
+      .then((barrels) => {
+        setBarrels(barrels)
       })
-    })
-  }, [getBarrels, getKegs])
+  }, [])
 
-  const handleShowBarrelDeleteConfirm = (barrel: Barrel) => {
+  const handleShowBarrelDeleteConfirm = (barrel: BarrelUI) => {
     setBarrelToDelete(barrel);
     setShowDeleteBarrelConfirm(true);
   }
@@ -96,21 +45,17 @@ export default function BarrelsOverview(props: { db: Firestore }) {
     setShowDeleteBarrelConfirm(false);
   }
 
-  const deleteBarrel = async () => {
+  const handleDeleteBarrelClick = () => {
     if (barrelToDelete?.id) {
-      await deleteDoc(doc(props.db, "barrels", barrelToDelete.id));
+      deleteBarrel(barrelToDelete.id).then(() => {
+        setShowDeleteBarrelConfirm(false)
+        getBarrels().then()
+      })
     }
   }
 
-  const handleDeleteBarrelClick = () => {
-    deleteBarrel().then(() => {
-      setShowDeleteBarrelConfirm(false)
-      getBarrels().then()
-    })
-  }
-
   const handleAddBarrelClick = async () => {
-    const newBarrel: Barrel = {
+    const id = await saveBarrel({
       name: '',
       temperature: 0.0,
       kegs: [
@@ -120,7 +65,7 @@ export default function BarrelsOverview(props: { db: Firestore }) {
           smallPrice: 3.00,
           smallOunces: 1.5,
           fullPrice: 9.00,
-          fullOunces: 9.00
+          fullOunces: 9.00,
         },
         {
           id: 'green',
@@ -128,7 +73,7 @@ export default function BarrelsOverview(props: { db: Firestore }) {
           smallPrice: 3.00,
           smallOunces: 1.5,
           fullPrice: 9.00,
-          fullOunces: 9.00
+          fullOunces: 9.00,
         },
         {
           id: 'blue',
@@ -136,12 +81,11 @@ export default function BarrelsOverview(props: { db: Firestore }) {
           smallPrice: 3.00,
           smallOunces: 1.5,
           fullPrice: 9.00,
-          fullOunces: 9.00
+          fullOunces: 9.00,
         },
       ]
-    }
-    const docRef = await addDoc(collection(props.db, "barrels"), newBarrel);
-    navigate(`/barrel/${docRef.id}`)
+    })
+    navigate(`/barrel/${id}`)
   }
 
   return (
@@ -151,7 +95,7 @@ export default function BarrelsOverview(props: { db: Firestore }) {
           <Grid key={barrel.id} xs={12} sm={12} md={6}>
             <Card
               sx={{height: 1, display: 'flex', justifyContent: 'space-between', flexDirection: 'column'}}>
-              <CardActionArea onClick={() => navigate(`/edit/${barrel.id}`)}>
+              <CardActionArea onClick={() => navigate(`/barrel/${barrel.id}`)}>
                 <CardContent>
                   <CardHeader
                     title={`${barrel.name}`}

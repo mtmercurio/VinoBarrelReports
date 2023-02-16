@@ -11,67 +11,43 @@ import {useCallback, useEffect, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import Box from "@mui/material/Box";
 import AddIcon from '@mui/icons-material/Add';
-import {Firestore} from "@firebase/firestore";
-import {collection, doc, getDocs, query, deleteDoc, addDoc} from "firebase/firestore";
 import BeverageCard from "../comonents/BeverageCard";
+import {BeverageUI, deleteBeverage, getBeverages, saveBeverage} from "../library/FirestoreUtils";
 
-export type Beverage = {
-  id?: string;
-  name: string;
-  info: string;
-  image: string;
-  tastingNotes: string;
-}
-
-export default function BeveragesOverview(props: { db: Firestore }) {
+export default function BeveragesOverview() {
   const navigate = useNavigate();
-  const [beverages, setBeverages] = useState<Beverage[]>([]);
-  const [beverageToDelete, setBeverageToDelete] = useState<Beverage>();
+  const [beverages, setBeverages] = useState<BeverageUI[]>([]);
+  const [beverageToDelete, setBeverageToDelete] = useState<BeverageUI>();
   const [showDeleteBeverageConfirm, setShowDeleteBeverageConfirm] = useState(false);
 
-  const getBeverages = useCallback(async () => {
-    const q = query(collection(props.db, "beverages"));
-    const querySnapshot = await getDocs(q);
-    const beverages: Beverage[] = []
-    querySnapshot.forEach((doc) => {
-      beverages.push({...doc.data() as Beverage, id: doc.id})
-    });
-    setBeverages(beverages)
-  }, [props.db])
-
   useEffect(() => {
-    getBeverages().then()
-  }, [getBeverages])
+    getBeverages().then((beverages) => setBeverages(beverages))
+  }, [])
 
   const handleCloseBeverageDeleteConfirm = () => {
     setShowDeleteBeverageConfirm(false);
   }
 
-  const deleteBeverage = async () => {
+  const handleDeleteBeverageClick = () => {
     if (beverageToDelete?.id) {
-      await deleteDoc(doc(props.db, "beverages", beverageToDelete.id));
+      deleteBeverage(beverageToDelete.id).then(() => {
+        setShowDeleteBeverageConfirm(false)
+        getBeverages().then((beverages) => setBeverages(beverages))
+      })
     }
   }
 
-  const handleDeleteBeverageClick = () => {
-    deleteBeverage().then(() => {
-      setShowDeleteBeverageConfirm(false)
-      getBeverages().then()
-    })
-  }
-
   const handleAddBeverageClick = async () => {
-    const newBeverage: Beverage = {
+    const id = await saveBeverage({
       name: '',
       info: '',
       image: '',
       tastingNotes: '',
-    }
-    const docRef = await addDoc(collection(props.db, "beverages"), newBeverage);
-    navigate(`/beverage/${docRef.id}`)
+    })
+    navigate(`/beverage/${id}`)
   }
 
-  const onCardDeleteButtonClick = useCallback((beverage: Beverage) => {
+  const onCardDeleteButtonClick = useCallback((beverage: BeverageUI) => {
     setBeverageToDelete(beverage)
     setShowDeleteBeverageConfirm(true)
   }, [])
@@ -109,7 +85,7 @@ export default function BeveragesOverview(props: { db: Firestore }) {
         </DialogTitle>
         <DialogActions>
           <Button onClick={handleCloseBeverageDeleteConfirm}>Cancel</Button>
-          <Button onClick={handleDeleteBeverageClick} color={'error'}>Delete Beverage</Button>
+          <Button onClick={handleDeleteBeverageClick} color={'error'}>Delete BeverageUI</Button>
         </DialogActions>
       </Dialog>
     </Container>

@@ -3,61 +3,42 @@ import {
   Container, Stack,
 } from "@mui/material";
 import * as React from "react";
-import {useCallback, useEffect, useState} from "react";
-import {useNavigate, useParams} from "react-router-dom";
+import {useEffect, useState} from "react";
+import {useParams} from "react-router-dom";
 import Box from "@mui/material/Box";
-import {Beverage} from "./BeveragesOverview";
-import {doc, getDoc, setDoc} from "firebase/firestore";
-import {Firestore} from "@firebase/firestore";
 import Button from "@mui/material/Button";
 import {FormContainer, TextFieldElement} from "react-hook-form-mui";
+import {BeverageUI, getBeverage, saveBeverage} from "../library/FirestoreUtils";
 
-export default function BeverageEdit(props: { db: Firestore }) {
-  const navigate = useNavigate();
+export default function BeverageEdit() {
   const {beverageId} = useParams<{ beverageId: string }>();
-  const [beverage, setBeverage] = useState<Beverage>({
+  const [beverage, setBeverage] = useState<BeverageUI>({
     id: '',
-    name: 'New Beverage',
+    name: 'New BeverageUI',
     info: '',
     image: '',
-    tastingNotes: '',
+    tastingNotes: ''
   })
   const [isLoading, setIsLoading] = useState(false);
 
-  const onSubmit = (data: Beverage) => {
-    saveBeverage(data).then()
+  const onSubmit = async (data: BeverageUI) => {
+    await saveBeverage(data)
   }
-
-  const getBeverage = useCallback(async (beverageId: string) => {
-    const docRef = doc(props.db, "beverages", beverageId);
-    const docSnap = await getDoc(docRef);
-    if (docSnap.exists()) {
-      console.log("Document data:", docSnap.data());
-      const b = {...docSnap.data(), id: docSnap.id}
-      setBeverage(b as Beverage)
-    } else {
-      console.log("No such document!");
-    }
-  }, [props.db])
 
   useEffect(() => {
     if (beverageId != null) {
       setIsLoading(true);
       getBeverage(beverageId)
-        .then(() => {
+        .then((beverage) => {
+          if (beverage) {
+            setBeverage(beverage)
+          }
           setIsLoading(false);
         })
     }
-  }, [getBeverage, beverageId])
+  }, [beverageId])
 
-  const saveBeverage = async (data: Beverage) => {
-    if (beverageId != null) {
-      await setDoc(doc(props.db, "beverages", beverageId), data, {merge: true});
-    }
-    navigate('/beverages')
-  }
-
-  const defaultValues: Beverage = {
+  const defaultValues: BeverageUI = {
     id: beverage.id,
     name: beverage.name,
     info: beverage.info,

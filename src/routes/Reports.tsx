@@ -9,8 +9,8 @@ import {
 import Grid from '@mui/material/Unstable_Grid2';
 import {Chart as ChartJS, BarElement, CategoryScale, Legend, LinearScale, Title, Tooltip, ArcElement} from "chart.js";
 import {Bar, Pie} from "react-chartjs-2";
-import {collection, query, where, Timestamp, orderBy, onSnapshot} from "firebase/firestore";
-import {Firestore} from "@firebase/firestore";
+import {Timestamp, onSnapshot} from "firebase/firestore";
+import {getTransactionsQuery} from "../library/FirestoreUtils";
 
 const groupArray = require('group-array');
 
@@ -44,7 +44,7 @@ type Transaction = {
   timestamp: Timestamp
 }
 
-export default function Reports(props: { db: Firestore }) {
+export default function Reports() {
   const [totals, setTotals] = useState<Total[] | []>([])
   const [totalPoured, setTotalPoured] = useState(0)
   const [totalData, setTotalData] = useState<number[]>([])
@@ -137,8 +137,7 @@ export default function Reports(props: { db: Firestore }) {
   };
 
   useEffect(() => {
-    const timestamp = Timestamp.now().toMillis() - (timeframeHour * 3600000)
-    const q = query(collection(props.db, "transactions"), where("timestamp", ">=", Timestamp.fromMillis(timestamp)), orderBy("timestamp", "desc"));
+    const q = getTransactionsQuery(timeframeHour)
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const transactions: Transaction[] = []
       querySnapshot.forEach((doc) => {
@@ -167,7 +166,7 @@ export default function Reports(props: { db: Firestore }) {
     return () => {
       unsubscribe()
     }
-  }, [props.db, timeframeHour])
+  }, [timeframeHour])
 
   useEffect(() => {
     let _totalPoured = 0

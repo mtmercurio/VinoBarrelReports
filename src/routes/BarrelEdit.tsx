@@ -5,12 +5,9 @@ import {
 } from "@mui/material";
 import Grid from '@mui/material/Unstable_Grid2'
 import * as React from "react";
-import {useCallback, useEffect, useState} from "react";
+import {useEffect, useState} from "react";
 import {useParams} from "react-router-dom";
 import Box from "@mui/material/Box";
-import {Barrel, Keg} from "./BarrelsOverview";
-import {doc, getDoc, setDoc, addDoc, collection} from "firebase/firestore";
-import {Firestore} from "@firebase/firestore";
 import {green} from "@mui/material/colors";
 import {useTheme} from '@mui/material/styles';
 import AddIcon from '@mui/icons-material/Add';
@@ -18,10 +15,11 @@ import './BarrelEdit.css'
 import SaveIcon from '@mui/icons-material/Save';
 import Button from "@mui/material/Button";
 import {FormContainer, SelectElement, TextFieldElement} from "react-hook-form-mui";
+import {BarrelUI, BeverageUI, getBarrel, getBeverages, KegUI, saveBarrel} from "../library/FirestoreUtils";
 
 const kegIds = ['red', 'green', 'blue'] as const;
-const defaultKeg: Keg = {
-  id: 'red',
+const defaultKeg: KegUI = {
+  id: '',
   ounces: 0,
   smallPrice: 0,
   fullPrice: 0,
@@ -29,58 +27,37 @@ const defaultKeg: Keg = {
   fullOunces: 0,
 }
 
-type FormProps = {
-  name: string
-  kegs: Keg[]
-}
-
-export default function BarrelEdit(props: { db: Firestore }) {
+export default function BarrelEdit() {
   const {barrelId} = useParams<{ barrelId: string }>();
   const theme = useTheme();
-  const [barrel, setBarrel] = useState<Barrel>({
-    id: '',
-    name: "",
-    temperature: 0,
-    kegs: [defaultKeg]
-  })
+  const [barrel, setBarrel] = useState<BarrelUI>()
+  const [beverages, setBeverages] = useState<BeverageUI[]>();
   const [isLoading, setIsLoading] = useState(false);
   const [kegIndex, setKegIndex] = useState(0);
   const [showDeleteKegConfirm, setShowDeleteKegConfirm] = useState(false);
 
-  const onSubmit = (data: FormProps) => {
-    saveBarrel(data)
+  const onSubmit = (barrel: BarrelUI) => {
+    saveBarrel(barrel).then(r => console.log(r))
   }
-
-  const getBarrel = useCallback(async (barrelId: string) => {
-    const docRef = doc(props.db, "barrels", barrelId);
-    const docSnap = await getDoc(docRef);
-    if (docSnap.exists()) {
-      console.log("Document data:", docSnap.data());
-      setBarrel(docSnap.data() as Barrel)
-    } else {
-      console.log("No such document!");
-    }
-  }, [props.db])
 
   useEffect(() => {
     if (barrelId) {
       setIsLoading(true);
       getBarrel(barrelId)
-        .then(() => {
+        .then((barrel) => {
+          if (barrel) {
+            setBarrel(barrel)
+          }
           setIsLoading(false);
         })
     } else {
       setIsLoading(false)
     }
-  }, [getBarrel, barrelId])
+  }, [barrelId])
 
-  const saveBarrel = async (data: FormProps) => {
-    if (barrelId) {
-      await setDoc(doc(props.db, "barrels", barrelId), data, {merge: true});
-    } else {
-      await addDoc(collection(props.db, "barrels"), data);
-    }
-  }
+  useEffect(() => {
+    getBeverages().then(beverages => setBeverages(beverages))
+  }, [])
 
   const handleShowKegDeleteConfirm = () => {
     setShowDeleteKegConfirm(true);
@@ -91,22 +68,24 @@ export default function BarrelEdit(props: { db: Firestore }) {
   }
 
   const handleDeleteKegClick = () => {
-    setBarrel(barrel => {
-      barrel.kegs.splice(kegIndex, 1)
-      return {...barrel}
-    })
+    if (barrel) {
+      const _barrel = {...barrel}
+      _barrel.kegs.splice(kegIndex, 1)
+      setBarrel(_barrel)
+      saveBarrel(_barrel).then()
+    }
     setKegIndex(0)
     setShowDeleteKegConfirm(false)
-    // saveBarrel().then()
   }
 
   const handleAddKegClick = () => {
-    setBarrel(barrel => {
-      barrel.kegs.push(defaultKeg)
-      setKegIndex(barrel.kegs.length - 1)
-      return {...barrel}
-    })
-    // saveBarrel().then()
+    if (barrel) {
+      const _barrel = {...barrel}
+      _barrel.kegs.push(defaultKeg)
+      setBarrel(_barrel)
+      setKegIndex(_barrel.kegs.length - 1)
+      saveBarrel(_barrel).then()
+    }
   }
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -164,16 +143,26 @@ export default function BarrelEdit(props: { db: Firestore }) {
     },
   ];
 
-  const defaultValues: FormProps = {
-    name: barrel.name,
-    kegs: barrel.kegs
-  }
+  const handleSelectNameOnChange = (beveragePath: string) => {
+    if (beverages && barrel) {
+      const beverageIndex = beverages.findIndex(beverage => beverage.ref?.path === beveragePath)
+      barrel.kegs[kegIndex].beverage = beverages[Number(beverageIndex)]
+      setBarrel({...barrel});
+    }
+  };
+
+  const handleSelectIdOnChange = (kegId: string) => {
+    if (barrel) {
+      barrel.kegs[kegIndex].id = kegId
+      setBarrel({...barrel});
+    }
+  };
 
   return (
     <Container>
       {!isLoading &&
           <FormContainer
-              defaultValues={defaultValues}
+              defaultValues={barrel}
               onSuccess={onSubmit}
           >
               <Stack spacing={2} direction="row" sx={{mb: 3}}>
@@ -202,20 +191,28 @@ export default function BarrelEdit(props: { db: Firestore }) {
                       Save
                   </Button>
               </Stack>
-              {/*<Box sx={{borderBottom: 1, borderColor: 'divider', mb: 3}}>*/}
-              {/*    <Tabs value={kegIndex} variant="scrollable" scrollButtons="auto" onChange={handleTabChange}*/}
-              {/*          aria-label="keg tabs">*/}
-              {/*      {barrel.kegs.map((keg, index) =>*/}
-              {/*        <Tab key={index} label={keg.beverage.name}/>*/}
-              {/*      )}*/}
-              {/*    </Tabs>*/}
-              {/*</Box>*/}
-            {barrel.kegs.map((keg, index) => (
+              <Box sx={{borderBottom: 1, borderColor: 'divider', mb: 3}}>
+                  <Tabs value={kegIndex} variant="scrollable" scrollButtons="auto" onChange={handleTabChange}
+                        aria-label="keg tabs">
+                    {barrel?.kegs.map((keg, index) => {
+                      return <Tab key={index} label={`${keg?.beverage?.name || ''} (${keg?.id || ''})`}/>
+                    })}
+                  </Tabs>
+              </Box>
+            {barrel?.kegs.map((keg, index) => (
               <React.Fragment key={index}>
                 {kegIndex === index &&
                     <Grid container spacing={2} sx={{mb: 8}}>
                         <Grid xs={12} sm={6}>
-                            <TextFieldElement name={`kegs[${index}].name`} label={'Name'} fullWidth/>
+                            <SelectElement
+                                name={`kegs[${index}].beveragePath`}
+                                label="Beverage"
+                                options={beverages?.map((beverage) => {
+                                  return {id: beverage.ref?.path, label: beverage.name}
+                                })}
+                                fullWidth
+                                onChange={handleSelectNameOnChange}
+                            />
                         </Grid>
                         <Grid xs={6} sm={3}>
                             <SelectElement
@@ -225,6 +222,7 @@ export default function BarrelEdit(props: { db: Firestore }) {
                                   return {id: kegId, label: kegId}
                                 })}
                                 fullWidth
+                                onChange={handleSelectIdOnChange}
                             />
                         </Grid>
                         <Grid xs={6} sm={3}>
@@ -233,16 +231,6 @@ export default function BarrelEdit(props: { db: Firestore }) {
                                                 endAdornment: <InputAdornment position="end">oz</InputAdornment>,
                                               }}
                                               type={'number'}/>
-                        </Grid>
-                        <Grid xs={12} sm={6}>
-                            <TextFieldElement name={`kegs[${index}].info`} label={'Info'} fullWidth/>
-                        </Grid>
-                        <Grid xs={12} sm={6}>
-                            <TextFieldElement name={`kegs[${index}].image`} label={'Image'} fullWidth/>
-                        </Grid>
-                        <Grid xs={12}>
-                            <TextFieldElement name={`kegs[${index}].tastingNotes`} label={'Tasting Notes'} fullWidth
-                                              multiline={true}/>
                         </Grid>
                         <Grid xs={6} sm={2}>
                             <TextFieldElement name={`kegs[${index}].smallPrice`} label={'Small Price'} fullWidth
@@ -294,20 +282,20 @@ export default function BarrelEdit(props: { db: Firestore }) {
               <CircularProgress/>
           </Box>
       }
-      {/*<Dialog*/}
-      {/*  open={showDeleteKegConfirm}*/}
-      {/*  onClose={handleCloseKegDeleteConfirm}*/}
-      {/*  aria-labelledby="alert-dialog-title"*/}
-      {/*  aria-describedby="alert-dialog-description"*/}
-      {/*>*/}
-      {/*  <DialogTitle id="alert-dialog-title">*/}
-      {/*    Are you sure you want to delete keg {barrel.kegs[kegIndex].beverage.name}?*/}
-      {/*  </DialogTitle>*/}
-      {/*  <DialogActions>*/}
-      {/*    <Button onClick={handleCloseKegDeleteConfirm}>Cancel</Button>*/}
-      {/*    <Button onClick={handleDeleteKegClick} color={'error'}>Delete Keg</Button>*/}
-      {/*  </DialogActions>*/}
-      {/*</Dialog>*/}
+      <Dialog
+        open={showDeleteKegConfirm}
+        onClose={handleCloseKegDeleteConfirm}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">
+          Are you sure you want to delete keg {barrel?.kegs[kegIndex]?.beverage?.name}?
+        </DialogTitle>
+        <DialogActions>
+          <Button onClick={handleCloseKegDeleteConfirm}>Cancel</Button>
+          <Button onClick={handleDeleteKegClick} color={'error'}>Delete Keg</Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   )
 }

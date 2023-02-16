@@ -7,12 +7,12 @@ import {
 } from "@mui/material";
 import Typography from "@mui/material/Typography";
 import * as React from "react";
-import {Beverage} from "../routes/BeveragesOverview";
 import {useNavigate} from "react-router-dom";
 import {useEffect, useState} from "react";
 import {getDownloadURL, getStorage, ref} from "firebase/storage";
+import {BeverageUI} from "../library/FirestoreUtils";
 
-export default function BeverageCard(props: { beverage: Beverage, onDeleteButtonClick: (beverage: Beverage) => void }) {
+export default function BeverageCard(props: { beverage: BeverageUI, onDeleteButtonClick: (beverage: BeverageUI) => void }) {
   const navigate = useNavigate();
   const [imgUrl, setImgUrl] = useState('')
   const storage = getStorage();
