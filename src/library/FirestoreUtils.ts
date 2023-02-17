@@ -75,25 +75,30 @@ export const getTransactionsQuery = (timeframeHour: number) => {
   return query(collection(db, "transactions"), where("timestamp", ">=", Timestamp.fromMillis(timestamp)), orderBy("timestamp", "desc"));
 }
 
+const getKegInformation = async (kegs: Keg[]) => {
+  const updatedKegs = []
+  for (const keg of kegs) {
+    // @ts-ignore
+    const beverage = keg?.beverageRef ? await getDoc(keg.beverageRef) : undefined
+    if (beverage) {
+      updatedKegs.push({...keg, beverage: {...beverage.data() as Beverage, id: beverage.id, ref: keg.beverageRef}})
+    } else {
+      updatedKegs.push({...keg})
+    }
+  }
+  return updatedKegs
+}
+
 export const getBarrels = async (): Promise<Barrel[]> => {
   const q = query(collection(db, "barrels"));
   const querySnapshot = await getDocs(q);
   const barrels: Barrel[] = []
 
-  querySnapshot.forEach( (barrelDoc) => {
+  querySnapshot.forEach((barrelDoc) => {
     barrels.push({...barrelDoc.data() as Barrel, id: barrelDoc.id})
   })
   for (const barrel of barrels) {
-    const updatedKegs: KegUI[] = []
-    for (const keg of barrel.kegs) {
-      const beverage = keg?.beverageRef?.id ? await getBeverage(keg?.beverageRef?.id) : undefined
-      if (beverage) {
-        updatedKegs.push({...keg, beverage: beverage})
-      } else {
-        updatedKegs.push({...keg})
-      }
-    }
-    barrel.kegs = updatedKegs
+    barrel.kegs = await getKegInformation(barrel.kegs)
   }
   return barrels
 }
@@ -103,16 +108,8 @@ export const getBarrel = async (barrelId: string): Promise<BarrelUI | undefined>
   const docSnap = await getDoc(docRef);
   if (docSnap.exists()) {
     const barrel = docSnap.data() as Barrel
-    const updatedKegs = []
-    for (const keg of barrel.kegs) {
-      const beverage = keg?.beverageRef?.id ? await getBeverage(keg?.beverageRef?.id) : undefined
-      if (beverage) {
-        updatedKegs.push({...keg, beverage: beverage})
-      } else {
-        updatedKegs.push({...keg})
-      }
-    }
-    return {...barrel, id: docSnap.id, kegs: updatedKegs}
+    const kegs = await getKegInformation(barrel.kegs)
+    return {...barrel, id: docSnap.id, kegs: kegs}
   } else {
     console.log("No such document!");
   }
