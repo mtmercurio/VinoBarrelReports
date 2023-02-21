@@ -43,7 +43,10 @@ type Keg = {
 type Barrel = {
   id: string;
   name: string;
-  temperature: number;
+  temperature: {
+    fahrenheit: number,
+    timestamp: Timestamp
+  };
   kegs: KegUI[];
 }
 

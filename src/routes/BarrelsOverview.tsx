@@ -22,6 +22,7 @@ import {
   getBarrels,
   saveBarrel
 } from "../library/FirestoreUtils";
+import {Timestamp} from "firebase/firestore";
 
 export default function BarrelsOverview() {
   const navigate = useNavigate();
@@ -57,7 +58,10 @@ export default function BarrelsOverview() {
   const handleAddBarrelClick = async () => {
     const id = await saveBarrel({
       name: '',
-      temperature: 0.0,
+      temperature: {
+        fahrenheit: 0.0,
+        timestamp: Timestamp.now()
+      },
       kegs: [
         {
           id: 'red',
@@ -99,7 +103,14 @@ export default function BarrelsOverview() {
                 <CardContent>
                   <CardHeader
                     title={`${barrel.name}`}
-                    subheader={barrel?.temperature ? `${barrel.temperature.toFixed(1)} \u00B0F` : ``}
+                    subheader={barrel?.temperature ?
+                      `${barrel.temperature.fahrenheit.toFixed(1)} \u00B0F (${barrel.temperature.timestamp.toDate().toLocaleDateString('en-us', {
+                        month: "short",
+                        day: "numeric",
+                        hour: "numeric",
+                        minute: "numeric",
+                        timeZoneName: 'short'
+                      })})` : ``}
                   />
 
                   {barrel.kegs.map((keg, index) =>
