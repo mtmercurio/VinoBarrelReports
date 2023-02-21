@@ -1,18 +1,14 @@
 import {
   CircularProgress,
-  Container, Dialog, DialogActions, DialogTitle, Fab, InputAdornment, Stack, SxProps,
-  Tab, Tabs, Zoom
+  Container, Dialog, DialogActions, DialogTitle, InputAdornment, Stack,
+  Tab, Tabs
 } from "@mui/material";
 import Grid from '@mui/material/Unstable_Grid2'
 import * as React from "react";
 import {useEffect, useState} from "react";
 import {useParams} from "react-router-dom";
 import Box from "@mui/material/Box";
-import {green} from "@mui/material/colors";
-import {useTheme} from '@mui/material/styles';
-import AddIcon from '@mui/icons-material/Add';
 import './BarrelEdit.css'
-import SaveIcon from '@mui/icons-material/Save';
 import Button from "@mui/material/Button";
 import {FormContainer, SelectElement, TextFieldElement} from "react-hook-form-mui";
 import {BarrelUI, BeverageUI, getBarrel, getBeverages, KegUI, saveBarrel} from "../library/FirestoreUtils";
@@ -29,7 +25,6 @@ const defaultKeg: KegUI = {
 
 export default function BarrelEdit() {
   const {barrelId} = useParams<{ barrelId: string }>();
-  const theme = useTheme();
   const [barrel, setBarrel] = useState<BarrelUI>()
   const [beverages, setBeverages] = useState<BeverageUI[]>();
   const [isLoading, setIsLoading] = useState(false);
@@ -92,57 +87,6 @@ export default function BarrelEdit() {
     setKegIndex(newValue);
   };
 
-  const transitionDuration = {
-    enter: theme.transitions.duration.enteringScreen,
-    exit: theme.transitions.duration.leavingScreen,
-  };
-
-  const buttonStyle = {
-    [theme.breakpoints.down('sm')]: {
-      display: 'none'
-    },
-  };
-
-  const fabStyle = {
-    position: 'fixed',
-    bottom: 20,
-    right: 20,
-    [theme.breakpoints.up('sm')]: {
-      display: 'none'
-    },
-  };
-
-  const fabGreenStyle = {
-    color: 'common.white',
-    bgcolor: green[500],
-    '&:hover': {
-      bgcolor: green[600],
-    },
-  };
-
-  const fabs = [
-    {
-      color: 'primary' as 'primary',
-      sx: fabStyle as SxProps,
-      icon: <AddIcon/>,
-      label: 'Keg',
-      shouldShow: true,
-      handleOnClick: () => {
-        handleAddKegClick()
-      }
-    },
-    {
-      color: 'inherit' as 'inherit',
-      sx: {...fabStyle, ...fabGreenStyle} as SxProps,
-      icon: <SaveIcon/>,
-      label: 'Save',
-      shouldShow: false,
-      handleOnClick: () => {
-        // saveBarrel().then()
-      }
-    },
-  ];
-
   const handleSelectNameOnChange = (beveragePath: string) => {
     if (beverages && barrel) {
       const beverageIndex = beverages.findIndex(beverage => beverage.ref?.path === beveragePath)
@@ -167,27 +111,10 @@ export default function BarrelEdit() {
           >
               <Stack spacing={2} direction="row" sx={{mb: 3}}>
                   <TextFieldElement name={`name`} label={'Barrel Name'} sx={{mr: 5}} required/>
-                {fabs.map((fab) => (
-                  <Zoom
-                    key={fab.color}
-                    in={fab.shouldShow}
-                    timeout={transitionDuration}
-                    style={{
-                      transitionDelay: `${fab.shouldShow ? transitionDuration.exit : 0}ms`,
-                    }}
-                    unmountOnExit
-                  >
-                    <Fab sx={fab.sx} variant="extended" aria-label={fab.label} color={fab.color}
-                         onClick={fab.handleOnClick}>
-                      {fab.icon}
-                    </Fab>
-                  </Zoom>
-                ))}
-                  <Button variant={'outlined'} color={'primary'} onClick={handleAddKegClick}
-                          sx={buttonStyle as SxProps}>
+                  <Button variant={'outlined'} color={'primary'} onClick={handleAddKegClick}>
                       Add Keg
                   </Button>
-                  <Button type={'submit'} color={'success'} sx={buttonStyle as SxProps}>
+                  <Button type={'submit'} color={'success'}>
                       Save
                   </Button>
               </Stack>
