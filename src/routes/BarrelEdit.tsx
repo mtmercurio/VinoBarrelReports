@@ -212,6 +212,7 @@ export default function BarrelEdit() {
                                 })}
                                 fullWidth
                                 onChange={handleSelectNameOnChange}
+                                required
                             />
                         </Grid>
                         <Grid xs={6} sm={3}>

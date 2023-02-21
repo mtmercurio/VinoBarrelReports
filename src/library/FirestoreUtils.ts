@@ -33,7 +33,6 @@ const db = getFirestore(app);
 type Keg = {
   id: string;
   beverageRef?: DocumentReference;
-  beveragePath?: string;
   ounces: number;
   smallPrice: number;
   smallOunces: number;
@@ -45,7 +44,7 @@ type Barrel = {
   id: string;
   name: string;
   temperature: number;
-  kegs: Keg[];
+  kegs: KegUI[];
 }
 
 type Beverage = {
@@ -59,6 +58,7 @@ type Beverage = {
 //types specific to UI
 export type KegUI = Keg & {
   beverage?: Beverage;
+  beveragePath?: string;
 }
 
 export type BarrelUI = Omit<Barrel, 'kegs'> & {
@@ -81,7 +81,7 @@ const getKegInformation = async (kegs: Keg[]) => {
     // @ts-ignore
     const beverage = keg?.beverageRef ? await getDoc(keg.beverageRef) : undefined
     if (beverage) {
-      updatedKegs.push({...keg, beverage: {...beverage.data() as Beverage, id: beverage.id, ref: keg.beverageRef}})
+      updatedKegs.push({...keg, beveragePath: keg.beverageRef?.path, beverage: {...beverage.data() as Beverage, id: beverage.id, ref: keg.beverageRef}})
     } else {
       updatedKegs.push({...keg})
     }

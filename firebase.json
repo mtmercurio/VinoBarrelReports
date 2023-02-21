@@ -12,5 +12,8 @@
         "destination": "/index.html"
       }
     ]
+  },
+  "extensions": {
+    "send-message": "twilio/send-message@0.2.1"
   }
 }
