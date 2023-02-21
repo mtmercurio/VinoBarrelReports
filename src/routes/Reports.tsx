@@ -252,7 +252,7 @@ export default function Reports() {
             Total Money
           </Typography>
           <Typography variant="h5" component="div" align={'center'} gutterBottom>
-            ${totalMoney / 100}
+            ${totalMoney}
           </Typography>
         </Grid>
         <Grid xs={12}>
