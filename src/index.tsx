@@ -9,7 +9,14 @@ import BarrelEdit from "./routes/BarrelEdit";
 import BeveragesOverview from "./routes/BeveragesOverview";
 import BeverageEdit from "./routes/BeverageEdit";
 import App from "./App";
-import {BarrelUI, BeverageUI, getBarrel, getBarrels, getBeverage, getBeverages} from "./library/FirestoreUtils";
+import {
+  BarrelUI,
+  BeverageUI,
+  getBarrel,
+  getBarrels,
+  getBeverage,
+  getBeverages
+} from "./library/FirestoreUtils";
 
 const router = createBrowserRouter([
     {

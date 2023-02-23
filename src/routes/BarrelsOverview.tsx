@@ -17,12 +17,10 @@ import {useLoaderData, useNavigate} from "react-router-dom";
 import Box from "@mui/material/Box";
 import AddIcon from '@mui/icons-material/Add';
 import {
-  BarrelUI,
+  BarrelUI, createBarrel,
   deleteBarrel,
   getBarrels,
-  saveBarrel
 } from "../library/FirestoreUtils";
-import {Timestamp} from "firebase/firestore";
 
 export default function BarrelsOverview() {
   const navigate = useNavigate();
@@ -50,40 +48,8 @@ export default function BarrelsOverview() {
   }
 
   const handleAddBarrelClick = async () => {
-    const id = await saveBarrel({
-      name: '',
-      temperature: {
-        fahrenheit: 0.0,
-        timestamp: Timestamp.now()
-      },
-      kegs: [
-        {
-          id: 'red',
-          ounces: 25,
-          smallPrice: 3.00,
-          smallOunces: 1.5,
-          fullPrice: 9.00,
-          fullOunces: 9.00,
-        },
-        {
-          id: 'green',
-          ounces: 25,
-          smallPrice: 3.00,
-          smallOunces: 1.5,
-          fullPrice: 9.00,
-          fullOunces: 9.00,
-        },
-        {
-          id: 'blue',
-          ounces: 25,
-          smallPrice: 3.00,
-          smallOunces: 1.5,
-          fullPrice: 9.00,
-          fullOunces: 9.00,
-        },
-      ]
-    })
-    navigate(`/barrels/${id}`)
+    const newBarrelId = await createBarrel();
+    navigate(`/barrels/${newBarrelId}`);
   }
 
   return (

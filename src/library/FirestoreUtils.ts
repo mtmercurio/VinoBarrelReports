@@ -84,7 +84,11 @@ const getKegInformation = async (kegs: Keg[]) => {
     // @ts-ignore
     const beverage = keg?.beverageRef ? await getDoc(keg.beverageRef) : undefined
     if (beverage) {
-      updatedKegs.push({...keg, beveragePath: keg.beverageRef?.path, beverage: {...beverage.data() as Beverage, id: beverage.id, ref: keg.beverageRef}})
+      updatedKegs.push({
+        ...keg,
+        beveragePath: keg.beverageRef?.path,
+        beverage: {...beverage.data() as Beverage, id: beverage.id, ref: keg.beverageRef}
+      })
     } else {
       updatedKegs.push({...keg})
     }
@@ -118,22 +122,44 @@ export const getBarrel = async (barrelId: string): Promise<BarrelUI | undefined>
   }
 }
 
-export const saveBarrel = async (barrel: Partial<Barrel>): Promise<string> => {
-  if (barrel?.id) {
-    if (barrel?.kegs) {
-      for (const keg of barrel.kegs) {
-        if (keg?.beveragePath) {
-          // @ts-ignore
-          keg.beverageRef = doc(db, keg?.beveragePath)
-        }
+export const createBarrel = async () => {
+  const barrel = {
+    name: '',
+    temperature: {
+      fahrenheit: 0.0,
+      timestamp: Timestamp.now()
+    },
+    kegs: [
+      {
+        id: 'red',
+        ounces: 25,
+        smallPrice: 3.00,
+        smallOunces: 1.5,
+        fullPrice: 9.00,
+        fullOunces: 9.00,
+      },
+      {
+        id: 'green',
+        ounces: 25,
+        smallPrice: 3.00,
+        smallOunces: 1.5,
+        fullPrice: 9.00,
+        fullOunces: 9.00,
       }
-    }
-    await setDoc(doc(db, "barrels", barrel.id), barrel, {merge: true});
-    return barrel.id
-  } else {
-    const ref = await addDoc(collection(db, "barrels"), barrel);
-    return ref.id
+    ]
   }
+  const ref = await addDoc(collection(db, "barrels"), barrel);
+  return ref.id
+}
+
+export const saveBarrel = async (barrel: Barrel) => {
+  for (const keg of barrel.kegs) {
+    if (keg.beveragePath) {
+      // @ts-ignore
+      keg.beverageRef = doc(db, keg?.beveragePath)
+    }
+  }
+  await setDoc(doc(db, "barrels", barrel.id), barrel, {merge: true});
 }
 
 export const deleteBarrel = async (barrelId: string) => {
