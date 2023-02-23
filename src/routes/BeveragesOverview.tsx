@@ -7,8 +7,8 @@ import {
   IconButton,
 } from "@mui/material";
 import * as React from "react";
-import {useCallback, useEffect, useState} from "react";
-import {useNavigate} from "react-router-dom";
+import {useCallback, useState} from "react";
+import {useLoaderData, useNavigate} from "react-router-dom";
 import Box from "@mui/material/Box";
 import AddIcon from '@mui/icons-material/Add';
 import BeverageCard from "../comonents/BeverageCard";
@@ -16,13 +16,10 @@ import {BeverageUI, deleteBeverage, getBeverages, saveBeverage} from "../library
 
 export default function BeveragesOverview() {
   const navigate = useNavigate();
-  const [beverages, setBeverages] = useState<BeverageUI[]>([]);
+  const data = useLoaderData() as BeverageUI[]
+  const [beverages, setBeverages] = useState<BeverageUI[]>(data);
   const [beverageToDelete, setBeverageToDelete] = useState<BeverageUI>();
   const [showDeleteBeverageConfirm, setShowDeleteBeverageConfirm] = useState(false);
-
-  useEffect(() => {
-    getBeverages().then((beverages) => setBeverages(beverages))
-  }, [])
 
   const handleCloseBeverageDeleteConfirm = () => {
     setShowDeleteBeverageConfirm(false);
@@ -44,7 +41,7 @@ export default function BeveragesOverview() {
       image: '',
       tastingNotes: '',
     })
-    navigate(`/beverage/${id}`)
+    navigate(`/beverages/${id}`)
   }
 
   const onCardDeleteButtonClick = useCallback((beverage: BeverageUI) => {

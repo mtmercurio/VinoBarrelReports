@@ -50,7 +50,7 @@ export default function BeverageCard(props: { beverage: BeverageUI, onDeleteButt
 
   return (
     <Card>
-      <CardActionArea onClick={() => navigate(`/beverage/${props.beverage.id}`)}>
+      <CardActionArea onClick={() => navigate(`/beverages/${props.beverage.id}`)}>
         <CardMedia
           sx={{maxHeight: 350, mt: 2, objectFit: "contain"}}
           image={imgUrl}

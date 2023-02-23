@@ -12,8 +12,8 @@ import {
 } from "@mui/material";
 import Typography from "@mui/material/Typography";
 import * as React from "react";
-import {useEffect, useState} from "react";
-import {useNavigate} from "react-router-dom";
+import {useState} from "react";
+import {useLoaderData, useNavigate} from "react-router-dom";
 import Box from "@mui/material/Box";
 import AddIcon from '@mui/icons-material/Add';
 import {
@@ -26,16 +26,10 @@ import {Timestamp} from "firebase/firestore";
 
 export default function BarrelsOverview() {
   const navigate = useNavigate();
-  const [barrels, setBarrels] = useState<BarrelUI[]>([]);
+  const data = useLoaderData() as BarrelUI[]
+  const [barrels] = useState<BarrelUI[]>(data);
   const [barrelToDelete, setBarrelToDelete] = useState<BarrelUI>();
   const [showDeleteBarrelConfirm, setShowDeleteBarrelConfirm] = useState(false);
-
-  useEffect(() => {
-    getBarrels()
-      .then((barrels) => {
-        setBarrels(barrels)
-      })
-  }, [])
 
   const handleShowBarrelDeleteConfirm = (barrel: BarrelUI) => {
     setBarrelToDelete(barrel);
@@ -89,7 +83,7 @@ export default function BarrelsOverview() {
         },
       ]
     })
-    navigate(`/barrel/${id}`)
+    navigate(`/barrels/${id}`)
   }
 
   return (
@@ -99,7 +93,7 @@ export default function BarrelsOverview() {
           <Grid key={barrel.id} xs={12} sm={12} md={6}>
             <Card
               sx={{height: 1, display: 'flex', justifyContent: 'space-between', flexDirection: 'column'}}>
-              <CardActionArea onClick={() => navigate(`/barrel/${barrel.id}`)}>
+              <CardActionArea onClick={() => navigate(`/barrels/${barrel.id}`)}>
                 <CardContent>
                   <CardHeader
                     title={`${barrel.name}`}

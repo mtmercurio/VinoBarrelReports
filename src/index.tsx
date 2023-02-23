@@ -1,9 +1,79 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
-import App from './App';
 import reportWebVitals from './reportWebVitals';
-import {BrowserRouter} from "react-router-dom";
+import {createBrowserRouter, RouterProvider} from "react-router-dom";
+import Reports from "./routes/Reports";
+import BarrelsOverview from "./routes/BarrelsOverview";
+import BarrelEdit from "./routes/BarrelEdit";
+import BeveragesOverview from "./routes/BeveragesOverview";
+import BeverageEdit from "./routes/BeverageEdit";
+import App from "./App";
+import {BarrelUI, BeverageUI, getBarrel, getBarrels, getBeverage, getBeverages} from "./library/FirestoreUtils";
+
+const router = createBrowserRouter([
+    {
+      path: "/",
+      element: <App/>,
+      children: [
+        {
+          index: true,
+          element: <Reports/>,
+        },
+        {
+          path: "reports",
+          element: <Reports/>,
+        },
+        {
+          path: "barrels",
+          element: <BarrelsOverview/>,
+          loader: async () => {
+            return await getBarrels();
+          },
+        },
+        {
+          path: "barrels/:barrelId",
+          element: <BarrelEdit/>,
+          loader: async ({params}) => {
+            let barrel: BarrelUI | undefined
+            if (params.barrelId) {
+              barrel = await getBarrel(params.barrelId);
+            }
+            let beverages = await getBeverages()
+
+            return {barrel, beverages}
+          },
+        },
+        {
+          path: "beverages",
+          element: <BeveragesOverview/>,
+          loader: async () => {
+            return await getBeverages();
+          },
+        },
+        {
+          path: "beverages/:beverageId",
+          element: <BeverageEdit/>,
+          loader: async ({params}) => {
+            let beverage: BeverageUI | undefined
+            if (params.beverageId) {
+              beverage = await getBeverage(params.beverageId);
+            }
+
+            return beverage
+          },
+        },
+        {
+          path: "*",
+          element:
+            (<main style={{padding: "1rem"}}>
+              <p>There is nothing here!</p>
+            </main>)
+        }
+      ],
+    },
+  ])
+;
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
@@ -11,9 +81,7 @@ const root = ReactDOM.createRoot(
 
 root.render(
   <React.StrictMode>
-    <BrowserRouter>
-      <App/>
-    </BrowserRouter>
+    <RouterProvider router={router}/>
   </React.StrictMode>
 );
 
