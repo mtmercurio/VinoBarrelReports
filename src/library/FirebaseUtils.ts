@@ -12,6 +12,14 @@ import {
 } from "firebase/firestore";
 import {initializeApp} from "firebase/app";
 import {DocumentReference} from "@firebase/firestore-types";
+import {
+  getAuth,
+  onAuthStateChanged,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  sendPasswordResetEmail
+} from "firebase/auth";
 
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -28,6 +36,63 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
+
+export let user = auth.currentUser
+
+export function getCurrentUser() {
+  return new Promise((resolve, reject) => {
+    const unsubscribe = onAuthStateChanged(auth, authorizedUser => {
+      if (authorizedUser) {
+        user = authorizedUser;
+      } else {
+        user = null
+      }
+      unsubscribe();
+      resolve(user)
+    }, reject);
+  });
+}
+
+export const createUser = (email: string, password: string) => {
+  return createUserWithEmailAndPassword(auth, email, password)
+    .then((userCredential) => {
+      // Signed in
+      user = userCredential.user;
+      return {ok: true, message: ''}
+    })
+    .catch((error) => {
+      // const errorCode = error.code;
+      const errorMessage = error.message;
+      return {ok: false, message: errorMessage}
+    });
+}
+
+export const sendPasswordReset = (email: string) => {
+  return sendPasswordResetEmail(auth, email)
+    .then(() => {
+      return {ok: true, message: 'Password Reset Email Sent'}
+    })
+    .catch((error) => {
+      const errorMessage = error.message;
+      return {ok: false, message: errorMessage}
+    });
+}
+
+export const signIn = (email: string, password: string) => {
+  return signInWithEmailAndPassword(auth, email, password)
+    .then((userCredential) => {
+      // Signed in
+      user = userCredential.user;
+      return {ok: true, message: ''}
+    })
+    .catch((error) => {
+      const errorMessage = error.message;
+      return {ok: false, message: errorMessage}
+    });
+}
+
+export const signUserOut = () => signOut(auth)
 
 //types in Firestore
 type Keg = {
@@ -71,7 +136,6 @@ export type BarrelUI = Omit<Barrel, 'kegs'> & {
 export type BeverageUI = Beverage & {
   ref?: DocumentReference
 }
-
 
 export const getTransactionsQuery = (timeframeHour: number) => {
   const timestamp = Timestamp.now().toMillis() - (timeframeHour * 3600000)

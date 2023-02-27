@@ -4,39 +4,23 @@ import AppBar from "@mui/material/AppBar";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import * as React from "react";
-import {FormContainer, PasswordElement, TextFieldElement} from "react-hook-form-mui";
-import {sendPasswordReset, signIn} from "../library/FirebaseUtils";
+import {FormContainer, PasswordElement, PasswordRepeatElement, TextFieldElement} from "react-hook-form-mui";
+import {createUser} from "../library/FirebaseUtils";
 import {NavLink, useNavigate} from "react-router-dom";
 import {useState} from "react";
-import Box from "@mui/material/Box";
 
-export default function Login() {
+export default function SignUp() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('')
   const [errorMessage, setErrorMessage] = useState()
-  const [successMessage, setSuccessMessage] = useState()
 
   const onSubmit = async (data: { email: string, password: string }) => {
-    const signedIn = await signIn(data.email, data.password)
-    if (signedIn.ok) {
+    const createdUser = await createUser(data.email, data.password)
+    if (createdUser.ok) {
       navigate('/')
     } else {
-      setErrorMessage(signedIn.message.replace('_', ' '))
+      setErrorMessage(createdUser.message.replace('_', ' '))
     }
   }
-
-  const handleForgotPasswordClick = async () => {
-    const passwordReset = await sendPasswordReset(email)
-    if (passwordReset.ok) {
-      setSuccessMessage(passwordReset.message)
-    } else {
-      setErrorMessage(passwordReset.message.replace('_', ' '))
-    }
-  }
-
-  const handleEmailChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setEmail(event.target.value);
-  };
 
   return (
     <>
@@ -62,12 +46,12 @@ export default function Login() {
               style={{
                 textDecoration: "none",
               }}
-              to={'/signup'}
+              to={'/login'}
             >
               <Button variant="text"
                       sx={{color: 'black', display: 'block'}}
               >
-                Sign Up
+                Login
               </Button>
             </NavLink>
           </Toolbar>
@@ -85,25 +69,25 @@ export default function Login() {
               label={'Email'}
               name={'email'}
               autoComplete="email"
-              onChange={handleEmailChange}
             />
             <PasswordElement
               margin={'normal'}
               label={'Password'}
               required
               name={'password'}
-              autoComplete="password"
+              autoComplete="new-password"
             />
-            <Box sx={{width: 'fit-content', cursor: 'pointer'}} color={'info'} onClick={handleForgotPasswordClick}>
-              Reset Password
-            </Box>
-            {successMessage &&
-                <Alert severity="success">{successMessage}</Alert>
-            }
+            <PasswordRepeatElement
+              passwordFieldName={'password'}
+              name={'password-repeat'}
+              margin={'normal'}
+              label={'Repeat Password'}
+              required
+            />
             {errorMessage &&
                 <Alert severity="error">{errorMessage}</Alert>
             }
-            <Button type={'submit'} color={'success'} size={'large'}>
+            <Button type={'submit'} color={'success'}>
               Submit
             </Button>
           </Stack>

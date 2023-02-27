@@ -10,6 +10,7 @@ import Container from '@mui/material/Container';
 import Button from '@mui/material/Button';
 import MenuItem from '@mui/material/MenuItem';
 import {NavLink, useNavigate} from "react-router-dom";
+import {signUserOut} from "../library/FirebaseUtils";
 
 const pages = ['reports', 'barrels', 'beverages'];
 
@@ -25,6 +26,15 @@ function VinoBarrelAppBar() {
     setAnchorElNav(null);
     navigate(`/${page}`)
   };
+
+  const handleLogOutClick = async () => {
+    try {
+      await signUserOut()
+      navigate('/signup')
+    } catch (e) {
+      console.log(e)
+    }
+  }
 
   return (
     <AppBar position="static" color={'inherit'} sx={{mb: 3}}>
@@ -114,6 +124,12 @@ function VinoBarrelAppBar() {
               </NavLink>
             ))}
           </Box>
+          <Button variant="text"
+                  sx={{color: 'black', display: 'block'}}
+                  onClick={handleLogOutClick}
+          >
+            Logout
+          </Button>
         </Toolbar>
       </Container>
     </AppBar>

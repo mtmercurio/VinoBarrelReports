@@ -12,7 +12,7 @@ import {useLoaderData, useNavigate} from "react-router-dom";
 import Box from "@mui/material/Box";
 import AddIcon from '@mui/icons-material/Add';
 import BeverageCard from "../comonents/BeverageCard";
-import {BeverageUI, deleteBeverage, getBeverages, saveBeverage} from "../library/FirestoreUtils";
+import {BeverageUI, deleteBeverage, getBeverages, saveBeverage} from "../library/FirebaseUtils";
 
 export default function BeveragesOverview() {
   const navigate = useNavigate();

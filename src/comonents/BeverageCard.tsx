@@ -10,7 +10,7 @@ import * as React from "react";
 import {useNavigate} from "react-router-dom";
 import {useEffect, useState} from "react";
 import {getDownloadURL, getStorage, ref} from "firebase/storage";
-import {BeverageUI} from "../library/FirestoreUtils";
+import {BeverageUI} from "../library/FirebaseUtils";
 
 export default function BeverageCard(props: { beverage: BeverageUI, onDeleteButtonClick: (beverage: BeverageUI) => void }) {
   const navigate = useNavigate();

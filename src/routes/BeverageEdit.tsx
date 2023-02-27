@@ -4,7 +4,7 @@ import {
 import * as React from "react";
 import Button from "@mui/material/Button";
 import {FormContainer, TextFieldElement} from "react-hook-form-mui";
-import {BeverageUI, saveBeverage} from "../library/FirestoreUtils";
+import {BeverageUI, saveBeverage} from "../library/FirebaseUtils";
 import {useLoaderData} from "react-router-dom";
 
 export default function BeverageEdit() {

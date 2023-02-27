@@ -20,7 +20,7 @@ import {
   BarrelUI, createBarrel,
   deleteBarrel,
   getBarrels,
-} from "../library/FirestoreUtils";
+} from "../library/FirebaseUtils";
 
 export default function BarrelsOverview() {
   const navigate = useNavigate();

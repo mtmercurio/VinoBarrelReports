@@ -9,7 +9,7 @@ import Box from "@mui/material/Box";
 import './BarrelEdit.css'
 import Button from "@mui/material/Button";
 import {FormContainer, SelectElement, TextFieldElement} from "react-hook-form-mui";
-import {BarrelUI, BeverageUI, KegUI, saveBarrel} from "../library/FirestoreUtils";
+import {BarrelUI, BeverageUI, KegUI, saveBarrel} from "../library/FirebaseUtils";
 import {useLoaderData} from "react-router-dom";
 
 const kegIds = ['red', 'green', 'blue'] as const;

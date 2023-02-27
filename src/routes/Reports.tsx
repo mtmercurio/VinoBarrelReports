@@ -10,7 +10,7 @@ import Grid from '@mui/material/Unstable_Grid2';
 import {Chart as ChartJS, BarElement, CategoryScale, Legend, LinearScale, Title, Tooltip, ArcElement} from "chart.js";
 import {Bar, Pie} from "react-chartjs-2";
 import {Timestamp, onSnapshot} from "firebase/firestore";
-import {getTransactionsQuery} from "../library/FirestoreUtils";
+import {getTransactionsQuery} from "../library/FirebaseUtils";
 
 const groupArray = require('group-array');
 

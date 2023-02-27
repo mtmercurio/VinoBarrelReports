@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import reportWebVitals from './reportWebVitals';
-import {createBrowserRouter, RouterProvider} from "react-router-dom";
+import {createBrowserRouter, redirect, RouterProvider} from "react-router-dom";
 import Reports from "./routes/Reports";
 import BarrelsOverview from "./routes/BarrelsOverview";
 import BarrelEdit from "./routes/BarrelEdit";
@@ -15,13 +15,30 @@ import {
   getBarrel,
   getBarrels,
   getBeverage,
-  getBeverages
-} from "./library/FirestoreUtils";
+  getBeverages, getCurrentUser
+} from "./library/FirebaseUtils";
+import SignUp from "./routes/SignUp";
+import Login from "./routes/Login";
 
 const router = createBrowserRouter([
     {
+      path: '/signup',
+      element: <SignUp/>
+    },
+    {
+      path: '/login',
+      element: <Login/>
+    },
+    {
       path: "/",
       element: <App/>,
+      loader: async () => {
+        const user = await getCurrentUser()
+        if (!user) {
+          return redirect("/signup");
+        }
+        return null;
+      },
       children: [
         {
           index: true,
@@ -78,7 +95,7 @@ const router = createBrowserRouter([
             </main>)
         }
       ],
-    },
+    }
   ])
 ;
 
