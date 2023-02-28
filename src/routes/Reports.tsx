@@ -137,32 +137,35 @@ export default function Reports() {
   };
 
   useEffect(() => {
-    const q = getTransactionsQuery(timeframeHour)
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const transactions: Transaction[] = []
-      querySnapshot.forEach((doc) => {
-        transactions.push(doc.data() as Transaction)
-      });
-      let _totals: Total[] | [] = []
-      if (transactions.length > 0) {
-        const groupedTransactions = groupArray(transactions, 'name')
-        _totals = Object.keys(groupedTransactions).map((name: string) => {
-          return {
-            name: name,
-            pouredML: groupedTransactions[name].reduce(
-              (accumulator: any, currentValue: any) => accumulator + currentValue.ouncesPoured,
-              0
-            ),
-            priceCents: groupedTransactions[name].reduce(
-              (accumulator: any, currentValue: any) => accumulator + currentValue.price,
-              0
-            ),
-            glasses: groupedTransactions[name].length,
+    let unsubscribe = () => {}
+    getTransactionsQuery(timeframeHour)
+      .then(q => {
+        unsubscribe = onSnapshot(q, (querySnapshot) => {
+          const transactions: Transaction[] = []
+          querySnapshot.forEach((doc) => {
+            transactions.push(doc.data() as Transaction)
+          });
+          let _totals: Total[] | [] = []
+          if (transactions.length > 0) {
+            const groupedTransactions = groupArray(transactions, 'name')
+            _totals = Object.keys(groupedTransactions).map((name: string) => {
+              return {
+                name: name,
+                pouredML: groupedTransactions[name].reduce(
+                  (accumulator: any, currentValue: any) => accumulator + currentValue.ouncesPoured,
+                  0
+                ),
+                priceCents: groupedTransactions[name].reduce(
+                  (accumulator: any, currentValue: any) => accumulator + currentValue.price,
+                  0
+                ),
+                glasses: groupedTransactions[name].length,
+              }
+            })
           }
-        })
-      }
-      setTotals(_totals)
-    });
+          setTotals(_totals)
+        });
+      })
     return () => {
       unsubscribe()
     }

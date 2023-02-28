@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import reportWebVitals from './reportWebVitals';
-import {createBrowserRouter, redirect, RouterProvider} from "react-router-dom";
+import {createBrowserRouter, redirect, RouterProvider, useRouteError} from "react-router-dom";
 import Reports from "./routes/Reports";
 import BarrelsOverview from "./routes/BarrelsOverview";
 import BarrelEdit from "./routes/BarrelEdit";
@@ -15,7 +15,8 @@ import {
   getBarrel,
   getBarrels,
   getBeverage,
-  getBeverages, getCurrentUser
+  getBeverages,
+  getUser
 } from "./library/FirebaseUtils";
 import SignUp from "./routes/SignUp";
 import Login from "./routes/Login";
@@ -33,11 +34,15 @@ const router = createBrowserRouter([
       path: "/",
       element: <App/>,
       loader: async () => {
-        const user = await getCurrentUser()
-        if (!user) {
+        try {
+          const user = await getUser()
+          if (!user) {
+            return redirect("/signup");
+          }
+          return null;
+        } catch (e) {
           return redirect("/signup");
         }
-        return null;
       },
       children: [
         {
@@ -58,6 +63,7 @@ const router = createBrowserRouter([
         {
           path: "barrels/:barrelId",
           element: <BarrelEdit/>,
+          errorElement: <ErrorBoundary />,
           loader: async ({params}) => {
             let barrel: BarrelUI | undefined
             if (params.barrelId) {
@@ -98,6 +104,13 @@ const router = createBrowserRouter([
     }
   ])
 ;
+
+function ErrorBoundary() {
+  let error = useRouteError();
+  console.error(error);
+  // Uncaught ReferenceError: path is not defined
+  return <div>Error</div>;
+}
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement

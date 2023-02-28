@@ -18,7 +18,8 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
-  sendPasswordResetEmail
+  sendPasswordResetEmail,
+  User
 } from "firebase/auth";
 
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -36,29 +37,39 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const auth = getAuth(app);
+export const auth = getAuth(app);
 
-export let user = auth.currentUser
+export const getUser = (): Promise<User> => {
+  return new Promise<User>((resolve, reject) => {
+    if (auth.currentUser) {
+      resolve(auth.currentUser)
+    } else {
+      const unsubscribe = onAuthStateChanged(auth, (_user) => {
+        if (_user) {
+          // User is signed in, see docs for a list of available properties
+          // https://firebase.google.com/docs/reference/js/firebase.User
+          console.log('setting user to ', _user)
+          unsubscribe()
+          resolve(_user)
+        } else {
+          unsubscribe()
+          reject('unauthorized')
+        }
+      });
+    }
+  })
+}
 
-export function getCurrentUser() {
-  return new Promise((resolve, reject) => {
-    const unsubscribe = onAuthStateChanged(auth, authorizedUser => {
-      if (authorizedUser) {
-        user = authorizedUser;
-      } else {
-        user = null
-      }
-      unsubscribe();
-      resolve(user)
-    }, reject);
-  });
+
+const createUserDoc = async (user: User) => {
+  await setDoc(doc(db, 'users', user.uid), {email: user.email});
 }
 
 export const createUser = (email: string, password: string) => {
   return createUserWithEmailAndPassword(auth, email, password)
-    .then((userCredential) => {
+    .then(async (userCredential) => {
       // Signed in
-      user = userCredential.user;
+      await createUserDoc(userCredential.user);
       return {ok: true, message: ''}
     })
     .catch((error) => {
@@ -81,9 +92,8 @@ export const sendPasswordReset = (email: string) => {
 
 export const signIn = (email: string, password: string) => {
   return signInWithEmailAndPassword(auth, email, password)
-    .then((userCredential) => {
+    .then(() => {
       // Signed in
-      user = userCredential.user;
       return {ok: true, message: ''}
     })
     .catch((error) => {
@@ -137,9 +147,10 @@ export type BeverageUI = Beverage & {
   ref?: DocumentReference
 }
 
-export const getTransactionsQuery = (timeframeHour: number) => {
+export const getTransactionsQuery = async (timeframeHour: number) => {
+  const user = await getUser()
   const timestamp = Timestamp.now().toMillis() - (timeframeHour * 3600000)
-  return query(collection(db, "transactions"), where("timestamp", ">=", Timestamp.fromMillis(timestamp)), orderBy("timestamp", "desc"));
+  return query(collection(db, 'users', user.uid, 'transactions'), where("timestamp", ">=", Timestamp.fromMillis(timestamp)), orderBy("timestamp", "desc"));
 }
 
 const getKegInformation = async (kegs: Keg[]) => {
@@ -161,7 +172,8 @@ const getKegInformation = async (kegs: Keg[]) => {
 }
 
 export const getBarrels = async (): Promise<Barrel[]> => {
-  const q = query(collection(db, "barrels"));
+  const user = await getUser()
+  const q = query(collection(db, 'users', user.uid, "barrels"));
   const querySnapshot = await getDocs(q);
   const barrels: Barrel[] = []
 
@@ -175,7 +187,8 @@ export const getBarrels = async (): Promise<Barrel[]> => {
 }
 
 export const getBarrel = async (barrelId: string): Promise<BarrelUI | undefined> => {
-  const docRef = doc(db, "barrels", barrelId);
+  const user = await getUser()
+  const docRef = doc(db, 'users', user.uid, "barrels", barrelId);
   const docSnap = await getDoc(docRef);
   if (docSnap.exists()) {
     const barrel = docSnap.data() as Barrel
@@ -187,6 +200,7 @@ export const getBarrel = async (barrelId: string): Promise<BarrelUI | undefined>
 }
 
 export const createBarrel = async () => {
+  const user = await getUser()
   const barrel = {
     name: '',
     temperature: {
@@ -212,22 +226,24 @@ export const createBarrel = async () => {
       }
     ]
   }
-  const ref = await addDoc(collection(db, "barrels"), barrel);
+  const ref = await addDoc(collection(db, 'users', user.uid, "barrels"), barrel);
   return ref.id
 }
 
 export const saveBarrel = async (barrel: Barrel) => {
+  const user = await getUser()
   for (const keg of barrel.kegs) {
     if (keg.beveragePath) {
       // @ts-ignore
       keg.beverageRef = doc(db, keg?.beveragePath)
     }
   }
-  await setDoc(doc(db, "barrels", barrel.id), barrel, {merge: true});
+  await setDoc(doc(db, 'users', user.uid, "barrels", barrel.id), barrel, {merge: true});
 }
 
 export const deleteBarrel = async (barrelId: string) => {
-  await deleteDoc(doc(db, "barrels", barrelId));
+  const user = await getUser()
+  await deleteDoc(doc(db, 'users', user.uid, "barrels", barrelId));
 }
 
 export const getBeverages = async (): Promise<BeverageUI[]> => {
