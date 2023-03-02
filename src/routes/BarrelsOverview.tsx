@@ -84,8 +84,7 @@ export default function BarrelsOverview() {
                     >
                       <ListItemText primary={keg.beverage?.name}/>
                     </ListItem>
-                  )
-                  }
+                  )}
                 </CardContent>
               </CardActionArea>
               <CardActions>

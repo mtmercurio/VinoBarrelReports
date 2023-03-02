@@ -48,7 +48,6 @@ export const getUser = (): Promise<User> => {
         if (_user) {
           // User is signed in, see docs for a list of available properties
           // https://firebase.google.com/docs/reference/js/firebase.User
-          console.log('setting user to ', _user)
           unsubscribe()
           resolve(_user)
         } else {

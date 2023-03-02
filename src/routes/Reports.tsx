@@ -33,7 +33,7 @@ type Total = {
   glasses: number;
 }
 
-type Transaction = {
+export type Transaction = {
   glass_id: string;
   kegId: string;
   ouncesPoured: number;
