@@ -72,11 +72,11 @@ export default function Reports() {
       case 'ounces':
         return ounces
       case 'milliliters':
-        return Math.round(ounces * 29.574 * 10) / 10
+        return Math.round(ounces * 29.574)
       case 'glasses (6oz)':
-        return Math.round((ounces / 6) * 10) / 10
+        return Math.round((ounces / 6) * 100) / 100
       case 'bottles (750ml)':
-        return Math.round(((ounces * 29.574) / 750) * 10) / 10
+        return Math.round(((ounces * 29.574) / 750) * 100) / 100
       default:
         return 0
     }
