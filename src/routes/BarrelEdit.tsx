@@ -29,8 +29,9 @@ export default function BarrelEdit() {
   const [kegIndex, setKegIndex] = useState(0);
   const [showDeleteKegConfirm, setShowDeleteKegConfirm] = useState(false);
 
-  const onSubmit = (barrel: BarrelUI) => {
-    saveBarrel(barrel).then(r => console.log(r))
+  const onSubmit = (_barrel: BarrelUI) => {
+    _barrel.kegs = barrel.kegs
+    saveBarrel(_barrel).then()
   }
 
   const handleShowKegDeleteConfirm = () => {
@@ -70,6 +71,7 @@ export default function BarrelEdit() {
     if (beverages && barrel) {
       const beverageIndex = beverages.findIndex(beverage => beverage.ref?.path === beveragePath)
       barrel.kegs[kegIndex].beverage = beverages[Number(beverageIndex)]
+      barrel.kegs[kegIndex].beveragePath = beveragePath
       setBarrel({...barrel});
     }
   };
