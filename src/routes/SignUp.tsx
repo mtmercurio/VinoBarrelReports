@@ -3,7 +3,6 @@ import Toolbar from "@mui/material/Toolbar";
 import AppBar from "@mui/material/AppBar";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
-import * as React from "react";
 import {FormContainer, PasswordElement, PasswordRepeatElement, TextFieldElement} from "react-hook-form-mui";
 import {createUser} from "../library/FirebaseUtils";
 import {NavLink, useNavigate} from "react-router-dom";

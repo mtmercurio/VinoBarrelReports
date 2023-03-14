@@ -1,7 +1,6 @@
 import {
   Container, Stack,
 } from "@mui/material";
-import * as React from "react";
 import Button from "@mui/material/Button";
 import {FormContainer, TextFieldElement} from "react-hook-form-mui";
 import {BeverageUI, saveBeverage} from "../library/FirebaseUtils";

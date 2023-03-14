@@ -6,7 +6,6 @@ import {
   Container, Dialog, DialogActions, DialogTitle,
   IconButton,
 } from "@mui/material";
-import * as React from "react";
 import {useCallback, useState} from "react";
 import {useLoaderData, useNavigate} from "react-router-dom";
 import Box from "@mui/material/Box";
@@ -82,7 +81,7 @@ export default function BeveragesOverview() {
         </DialogTitle>
         <DialogActions>
           <Button onClick={handleCloseBeverageDeleteConfirm}>Cancel</Button>
-          <Button onClick={handleDeleteBeverageClick} color={'error'}>Delete BeverageUI</Button>
+          <Button onClick={handleDeleteBeverageClick} color={'error'}>Delete Beverage</Button>
         </DialogActions>
       </Dialog>
     </Container>
