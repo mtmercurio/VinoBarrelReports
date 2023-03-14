@@ -298,6 +298,5 @@ export const getUserSettings =async () => {
 
 export const saveUserSettings = async (userSettings: UserSettings) => {
   const user = await getUser()
-  console.log(userSettings)
   await setDoc(doc(db, 'users', user.uid), userSettings, {merge: true});
 }
