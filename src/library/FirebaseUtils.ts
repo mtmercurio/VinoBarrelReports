@@ -4,7 +4,6 @@ import {
   doc,
   getDoc,
   getDocs,
-  getFirestore,
   orderBy,
   query, setDoc,
   Timestamp,
@@ -116,6 +115,7 @@ type Keg = {
   smallOunces: number;
   fullPrice: number;
   fullOunces: number;
+  calibration: number;
 }
 
 type Barrel = {
