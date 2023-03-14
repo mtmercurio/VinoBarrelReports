@@ -12,7 +12,7 @@ import MenuItem from '@mui/material/MenuItem';
 import {NavLink, useNavigate} from "react-router-dom";
 import {signUserOut} from "../library/FirebaseUtils";
 
-const pages = ['reports', 'barrels', 'beverages'];
+const pages = ['reports', 'barrels', 'beverages', 'settings'];
 
 function VinoBarrelAppBar() {
   const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);

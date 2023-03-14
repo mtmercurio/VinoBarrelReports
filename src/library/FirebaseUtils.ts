@@ -8,7 +8,8 @@ import {
   orderBy,
   query, setDoc,
   Timestamp,
-  where
+  where,
+  initializeFirestore
 } from "firebase/firestore";
 import {initializeApp} from "firebase/app";
 import {DocumentReference} from "@firebase/firestore-types";
@@ -21,6 +22,7 @@ import {
   sendPasswordResetEmail,
   User
 } from "firebase/auth";
+import { UserSettings } from "../routes/UserSettingsEdit";
 
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -36,7 +38,10 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+const db = initializeFirestore(app, {
+  ignoreUndefinedProperties: true
+})
+
 export const auth = getAuth(app);
 
 export const getUser = (): Promise<User> => {
@@ -58,7 +63,6 @@ export const getUser = (): Promise<User> => {
     }
   })
 }
-
 
 const createUserDoc = async (user: User) => {
   await setDoc(doc(db, 'users', user.uid), {email: user.email});
@@ -278,4 +282,22 @@ export const saveBeverage = async (beverage: Partial<Beverage>): Promise<string>
     const ref = await addDoc(collection(db, "beverages"), beverage);
     return ref.id
   }
+}
+
+export const getUserSettings =async () => {
+  const user = await getUser()
+  const docRef = doc(db, 'users', user.uid);
+  const docSnap = await getDoc(docRef);
+  if (docSnap.exists()) {
+    const user = docSnap.data() as UserSettings
+    return {...user}
+  } else {
+    console.log("No such document!");
+  }
+}
+
+export const saveUserSettings = async (userSettings: UserSettings) => {
+  const user = await getUser()
+  console.log(userSettings)
+  await setDoc(doc(db, 'users', user.uid), userSettings, {merge: true});
 }

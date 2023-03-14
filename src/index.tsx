@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import reportWebVitals from './reportWebVitals';
-import {createBrowserRouter, redirect, RouterProvider, useRouteError} from "react-router-dom";
+import { createBrowserRouter, redirect, RouterProvider, useRouteError } from "react-router-dom";
 import Reports from "./routes/Reports";
 import BarrelsOverview from "./routes/BarrelsOverview";
 import BarrelEdit from "./routes/BarrelEdit";
@@ -16,94 +16,106 @@ import {
   getBarrels,
   getBeverage,
   getBeverages,
-  getUser
+  getUser,
+  getUserSettings
 } from "./library/FirebaseUtils";
 import SignUp from "./routes/SignUp";
 import Login from "./routes/Login";
+import UserSettingsEdit, { UserSettings } from './routes/UserSettingsEdit';
 
 const router = createBrowserRouter([
-    {
-      path: '/signup',
-      element: <SignUp/>
-    },
-    {
-      path: '/login',
-      element: <Login/>
-    },
-    {
-      path: "/",
-      element: <App/>,
-      loader: async () => {
-        try {
-          const user = await getUser()
-          if (!user) {
-            return redirect("/signup");
-          }
-          return null;
-        } catch (e) {
+  {
+    path: '/signup',
+    element: <SignUp />
+  },
+  {
+    path: '/login',
+    element: <Login />
+  },
+  {
+    path: "/",
+    element: <App />,
+    loader: async () => {
+      try {
+        const user = await getUser()
+        if (!user) {
           return redirect("/signup");
         }
+        return null;
+      } catch (e) {
+        return redirect("/signup");
+      }
+    },
+    children: [
+      {
+        index: true,
+        element: <Reports />,
       },
-      children: [
-        {
-          index: true,
-          element: <Reports/>,
+      {
+        path: "reports",
+        element: <Reports />,
+      },
+      {
+        path: "barrels",
+        element: <BarrelsOverview />,
+        loader: async () => {
+          return await getBarrels();
         },
-        {
-          path: "reports",
-          element: <Reports/>,
-        },
-        {
-          path: "barrels",
-          element: <BarrelsOverview/>,
-          loader: async () => {
-            return await getBarrels();
-          },
-        },
-        {
-          path: "barrels/:barrelId",
-          element: <BarrelEdit/>,
-          errorElement: <ErrorBoundary />,
-          loader: async ({params}) => {
-            let barrel: BarrelUI | undefined
-            if (params.barrelId) {
-              barrel = await getBarrel(params.barrelId);
-            }
-            let beverages = await getBeverages()
+      },
+      {
+        path: "barrels/:barrelId",
+        element: <BarrelEdit />,
+        errorElement: <ErrorBoundary />,
+        loader: async ({ params }) => {
+          let barrel: BarrelUI | undefined
+          if (params.barrelId) {
+            barrel = await getBarrel(params.barrelId);
+          }
+          let beverages = await getBeverages()
 
-            return {barrel, beverages}
-          },
+          return { barrel, beverages }
         },
-        {
-          path: "beverages",
-          element: <BeveragesOverview/>,
-          loader: async () => {
-            return await getBeverages();
-          },
+      },
+      {
+        path: "beverages",
+        element: <BeveragesOverview />,
+        loader: async () => {
+          return await getBeverages();
         },
-        {
-          path: "beverages/:beverageId",
-          element: <BeverageEdit/>,
-          loader: async ({params}) => {
-            let beverage: BeverageUI | undefined
-            if (params.beverageId) {
-              beverage = await getBeverage(params.beverageId);
-            }
+      },
+      {
+        path: "beverages/:beverageId",
+        element: <BeverageEdit />,
+        loader: async ({ params }) => {
+          let beverage: BeverageUI | undefined
+          if (params.beverageId) {
+            beverage = await getBeverage(params.beverageId);
+          }
 
-            return beverage
-          },
+          return beverage
         },
-        {
-          path: "*",
-          element:
-            (<main style={{padding: "1rem"}}>
-              <p>There is nothing here!</p>
-            </main>)
-        }
-      ],
-    }
-  ])
-;
+      },
+      {
+        path: "settings",
+        element: <UserSettingsEdit />,
+        loader: async () => {
+          let user: UserSettings | undefined
+          user = await getUserSettings();
+
+          return user
+        },
+      },
+      {
+        path: "*",
+        element:
+          (<main style={{ padding: "1rem" }}>
+            <p>There is nothing here!</p>
+          </main>)
+      }
+    ],
+  }
+])
+  ;
 
 function ErrorBoundary() {
   let error = useRouteError();
@@ -118,7 +130,7 @@ const root = ReactDOM.createRoot(
 
 root.render(
   <React.StrictMode>
-    <RouterProvider router={router}/>
+    <RouterProvider router={router} />
   </React.StrictMode>
 );
 
